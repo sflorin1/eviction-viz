@@ -14,5 +14,10 @@
 		"svelte": "^4.2.19",
 		"vite": "^4.3.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@floating-ui/dom": "^1.6.13",
+		"d3": "^7.9.0",
+		"mapbox-gl": "^3.11.0"
+	}
 }
