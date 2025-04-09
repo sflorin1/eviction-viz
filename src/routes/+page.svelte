@@ -15,27 +15,39 @@ mapboxgl.accessToken = 'pk.eyJ1Ijoic2Zsb3JpbjEyMyIsImEiOiJjbTkwdXpxcXEwMjd3Mmlwa
 const urlBase = 'https://api.mapbox.com/isochrone/v1/mapbox/';
 
 let evictions = [];
+let censusData = [];
+let corpRateDiffByGeoid;
 let map;
 let pieData;
 let selectedEvictorIndex = -1;
 let selectedEvictor;
 let selectedEviction = null;
 let defaultCenter = [-71.0854339, 42.3454145];
-/**let tractData = {
-    "25017350103": 125,
-    "25017351500": 250,
-    "25017373100": 180,
-    "25017373600": 230,
-    "25021400600": 110
-};**/
+let corpOwnRateDiff = d3.scaleQuantize()
+	.domain([-.8, .3])
+	.range([-.5, 0, 0.5]);
+const corpOwnRateDiffColorMap = {
+    [-.5]: "#d73027", 
+      [0]: "#ffffbf",    
+    [0.5]: "#1a9850"   
+    };
 
 /**
- * TODO:
- *  Make it so selections on pie chart filter map data [DONE]
- *  Maybe recenter map so evictor properties are centered [DONE]
- *  Make tool tip appears when hovering over eviction (location, number of evictions, owner, tract demo?) [DONE]
- *  Maybe group evictions based on location, size off number of evictions at a certain property [DONE]
- *  Color something off of corporate ownership rate vs owner occupancy rate (census tracts?) 
+* TODO: 
+ *  Color something off of corporate ownership rate vs owner occupancy rate (census tracts?)  [DONE, need legend]
+ *  Better display for multiple evictions in home (fix opacity)
+ *  Maybe do little houses for each eviction, offset location by random amount 
+ *      so each eviction appears separately
+ * Clean up data a bit to better identify serial evictors
+ * Multiple points highlighted at same time.
+ */
+
+
+/**
+ * 
+ * RED = More owner occupied
+ * YELLOW = more similar rates
+ * Green = More corporately owned
  */
 async function loadMap(){
         map = new mapboxgl.Map({
@@ -47,6 +59,48 @@ async function loadMap(){
         center: filteredCenter
 	    });
         await new Promise(resolve => map.on("load", resolve));
+        censusData =  d3.csv(`${base}/census_data.csv`, d => {
+            return {
+                geoid: d.GEOID,
+                cor: +d.corp_own_rate,
+                oor: +d.own_occ_rate
+            }
+        }).then(
+            data => {
+            corpRateDiffByGeoid = Object.fromEntries(
+                data.map(d => [d.geoid, d.cor - d.oor])
+            );
+            });
+
+        const geojson = await d3.json(`${base}/Metro_Boston_Census_Tracts copy.geojson`);
+        geojson.features.forEach(f => {
+            const geoid = f.properties.geoid;
+            const rawValue = corpRateDiffByGeoid[geoid];
+            if (rawValue != null) {
+            const quantized = corpOwnRateDiff(rawValue); // returns -0.3, 0, or 0.3
+            console.log(geoid, rawValue, quantized, corpOwnRateDiffColorMap[quantized]);
+            f.properties.color = corpOwnRateDiffColorMap[quantized];}
+            else{
+                f.properties.color = "#ccc";
+            }
+        });
+        console.log(geojson);
+        map.addSource("boston_census_tracts", {type: "geojson", data: geojson});
+        //map.addSource("boston_census_tracts", {
+	    //    type: "geojson",
+	    //    data: `${base}/Metro_Boston_Census_Tracts copy.geojson`,
+        //});
+        
+        map.addLayer({
+	        id: "census_tract",
+	        type: "fill", // one of the supported layer types, e.g. line, circle, etc.
+	        source: "boston_census_tracts", // The id we specified in `addSource()`
+	        paint: {
+		        "fill-color": ["get", "color"],
+                "fill-opacity": 0.6
+	        },
+        });
+        
         /**map.addSource("test_data",{
             type: "geojson",
             data: tractData,
@@ -86,7 +140,6 @@ $: {
         
         if (otherSum > 0) {
             cutOffRolledData.push(["Other", otherSum]);
-            console.log(otherSum);
         }
         pieData = cutOffRolledData.map(([name_plaintiff, count]) => {
         return {value: count, label: name_plaintiff };
@@ -127,7 +180,6 @@ $: if (map && filteredCenter) {
     <svg>
     {#key mapViewChanged}
     {#each filteredEvictions as eviction}
-    {console.log(d3.extent(Object.values(groupedEvictionsByAddress)))}
     <circle cx={ getCoords(eviction).cx }
         cy={ getCoords(eviction).cy }
         class={eviction?.add_p === selectedEviction?.add_p ? "selected" : ""}
