@@ -35,11 +35,11 @@ const corpOwnRateDiffColorMap = {
 /**
 * TODO: 
  *  Color something off of corporate ownership rate vs owner occupancy rate (census tracts?)  [DONE, need legend]
- *  Better display for multiple evictions in home (fix opacity)
+ *  Better display for multiple evictions in home (fix opacity) 
  *  Maybe do little houses for each eviction, offset location by random amount 
- *      so each eviction appears separately
- * Clean up data a bit to better identify serial evictors
- * Multiple points highlighted at same time.
+ *      so each eviction appears separately [Doesn't really work]
+ * Clean up data a bit to better identify serial evictors [DONE]
+ * Multiple points highlighted at same time. [Leaving for now]
  */
 
 
@@ -78,13 +78,11 @@ async function loadMap(){
             const rawValue = corpRateDiffByGeoid[geoid];
             if (rawValue != null) {
             const quantized = corpOwnRateDiff(rawValue); // returns -0.3, 0, or 0.3
-            console.log(geoid, rawValue, quantized, corpOwnRateDiffColorMap[quantized]);
             f.properties.color = corpOwnRateDiffColorMap[quantized];}
             else{
                 f.properties.color = "#ccc";
             }
         });
-        console.log(geojson);
         map.addSource("boston_census_tracts", {type: "geojson", data: geojson});
         //map.addSource("boston_census_tracts", {
 	    //    type: "geojson",
@@ -125,14 +123,15 @@ $: map?.on("move", evt => mapViewChanged++);
 
 onMount(async () => {
     loadMap();
-    evictions = await d3.csv(`${base}/total_merged_eviction_df.csv`);
+    evictions = await d3.csv(`${base}/total_merged_eviction_df2.csv`);
 });
 
-let cutoff = 20;
+let cutoff = 30;
 
 $: {
         pieData = {};
-        let rolledData = d3.rollups(evictions, v => v.length, d => d.name_plaintiff);
+        let rolledData = d3.rollups(evictions, v => v.length, d => d.filtered_name_plaintiff);
+        console.log(rolledData);
         rolledData.sort((a, b) => b[1] - a[1]);
         let cutOffRolledData = rolledData.slice(0,cutoff);
         let otherData = rolledData.slice(cutoff);
@@ -164,7 +163,7 @@ $: rScale = d3.scaleSqrt().domain(d3.extent(Object.values(groupedEvictionsByAddr
 //d3.scaleSqrt().domain(d3.extent(Object.values(groupedEvictionsByAddress))).range(2,10);
 $: selectedEvictor = selectedEvictorIndex > -1 ? pieData[selectedEvictorIndex].label : null;
 $: filteredEvictions = selectedEvictorIndex=== -1 ? evictions: evictions.filter(eviction => {
-        return eviction.name_plaintiff ===  selectedEvictor
+        return eviction.filtered_name_plaintiff ===  selectedEvictor
         })
 $: filteredCenter = selectedEvictorIndex=== -1 ? defaultCenter: [d3.mean(filteredEvictions, d=>  d.long), d3.mean(filteredEvictions, d=>  d.lat)];
 $: if (map && filteredCenter) {
@@ -180,13 +179,26 @@ $: if (map && filteredCenter) {
     <svg>
     {#key mapViewChanged}
     {#each filteredEvictions as eviction}
-    <circle cx={ getCoords(eviction).cx }
+        <circle cx={ getCoords(eviction).cx }
         cy={ getCoords(eviction).cy }
         class={eviction?.add_p === selectedEviction?.add_p ? "selected" : ""}
         on:mouseenter={() => selectedEviction = selectedEviction?.add_p !== eviction?.add_p ? eviction : null}
         on:mouseleave={()=> selectedEviction = null}
         r={rScale(groupedEvictionsByAddress[eviction.add_p])}
         fill="steelblue" />
+
+        <!--<image
+        href="house.svg"
+        x={getCoords(eviction).cx - rScale(groupedEvictionsByAddress[eviction.add_p]) / 2}
+        y={getCoords(eviction).cy - rScale(groupedEvictionsByAddress[eviction.add_p]) / 2}
+        width={rScale(groupedEvictionsByAddress[eviction.add_p])}
+        height={rScale(groupedEvictionsByAddress[eviction.add_p])}
+        class={eviction?.add_p === selectedEviction?.add_p ? "selected" : ""}
+        on:mouseenter={() => selectedEviction = selectedEviction?.add_p !== eviction?.add_p ? eviction : null}
+        on:mouseleave={()=> selectedEviction = null}
+        fill="steelblue" 
+        style="pointer-events: auto;"/>-->
+        
     {/each}
     {/key}
     </svg>
@@ -223,17 +235,23 @@ svg{
     height: 80vh;
     position: relative;
     &:has(circle.selected) circle:not(.selected) {
-		opacity: 0.5;
+		opacity: 0.2;
+	}
+    &:has(image.selected) image:not(.selected) {
+		opacity: 0.3;
 	}
 }
-circle {
+circle, image {
     stroke: white;
     pointer-events: auto;
 }
-circle.selected {
+circle.selected, image.selected {
     fill: orange;
     stroke: black;
     stroke-width: 2;
+    filter: drop-shadow(0 0 2px black);
+    z-index: 10; 
+    opacity: 1;
 }
 .tooltip {
             position: fixed;
