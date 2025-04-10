@@ -63,7 +63,7 @@
     async function loadMap(){
         map = new mapboxgl.Map({
             container: "map",
-            style: "mapbox://styles/mapbox/light-v11",
+            style: "mapbox://styles/mapbox/streets-v12",
             zoom: 11,
             minZoom: 5,
             maxZoom: 18,
