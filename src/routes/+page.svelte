@@ -64,7 +64,7 @@
         map = new mapboxgl.Map({
             container: "map",
             style: "mapbox://styles/mapbox/streets-v12",
-            zoom: 13,
+            zoom: 11,
             minZoom: 5,
             maxZoom: 18,
             center: filteredCenter
@@ -201,10 +201,7 @@
         : selectedEvictor === "Other" 
             ? evictions.filter(eviction => !pieData.some(p => p.label === eviction.filtered_name_plaintiff && !p.isOther))
             : evictions.filter(eviction => eviction.filtered_name_plaintiff === selectedEvictor);
-                 
-    });
   
-    }
     $: groupedEvictionsByAddress = d3.rollups(
         filteredEvictions,
         v => v.length,
@@ -234,7 +231,7 @@
         : pieData[selectedEvictorIndex].avgCoords;
         
     $: if (map && filteredCenter) {
-        map.flyTo({ center: filteredCenter, zoom: 13, speed: 1.2 });
+        map.flyTo({ center: filteredCenter, zoom: 11, speed: 1.2 });
     }
     
     function handleWaffleSelection(event) {
@@ -265,18 +262,6 @@
 
 <h1>Serial Evictors in Boston</h1>
 <h3>Executed evictions in Boston from 2020-2023: {evictions.length}</h3>
-
-<div class="tract-legend">
-    <h3>Census Tract Colors</h3>
-    <div class="tract-legend-items">
-        {#each tractLegend as item}
-            <div class="tract-legend-item">
-                <div class="tract-color" style="background-color: {item.color};"></div>
-                <div class="tract-label">{item.label}</div>
-            </div>
-        {/each}
-    </div>
-</div>
 
 <div id="map" on:click|stopPropagation>
     <svg>
