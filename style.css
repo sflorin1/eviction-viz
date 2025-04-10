@@ -1,0 +1,12 @@
+:root {
+    --red-orange: #EA553E;
+    --cobalt: #3943B7;
+    --teal: #2CF6B3;
+    --black: #16302B;
+    --background-tan: #F9EAE1;
+
+    /*Sequential Color Scale for Choropleth*/
+    --dark-red: "#EA553E";
+    --mid-red: "#f2917e";
+    --light-red: "#f5c5b8";
+}
