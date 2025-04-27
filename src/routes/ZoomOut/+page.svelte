@@ -7,7 +7,27 @@
   const boxSvgPath = '/box.svg';
   const noticeSvgPath = '/notice.svg';
   
-  // Enhanced configuration for each row of boxes
+  // Initial focus configuration
+  const initialRowIndex = 7; // 8th row (0-based index)
+  const initialBoxIndex = 6; // 7th box from right (0-based index)
+  
+  // Box positions (we'll use a simplified array for initial view)
+  const boxRow = { 
+    topPosition: 533, // This is the 8th row's position (index 7)
+    rightOffset: '170px',
+    spacing: 0, 
+    boxSize: '65px'
+  };
+  
+  // Notice position matching the box
+  const noticeRow = { 
+    topPosition: 552, // Matching 8th row
+    rightOffset: '192px',
+    spacing: 120, 
+    size: '25px'
+  };
+  
+  // Full configuration (for later reveal)
   const boxRows = [
     { topPosition: 80, count: 13, rightOffset: '0px', spacing: 80, boxSize: '65px' },
     { topPosition: 150, count: 13, rightOffset: '70px', spacing: 80, boxSize: '65px' },
@@ -40,31 +60,35 @@
     { topPosition: 916, count: 13, rightOffset: '23px', spacing: 120, size: '25px' }
   ];
   
-  // Zoom scale state
-  let scale = 3.5; // Start zoomed in (2.5x)
-  let minScale = 1; // Fully zoomed out scale (normal size)
-  let maxScale = 3.5; // Maximum zoom-in
+  // View state
+  let scale = 3.5; // Start zoomed in
+  let minScale = 1; // Fully zoomed out
+  let maxScale = 3.5; // Max zoom in
+  let zoomProgress = 0; // Progress of reveal (0-1)
+  let showAllRows = false; // Flag to show all rows
   
-  // Scroll tracking
+  // Position for the focal point on the row
+  let boxPosition = initialBoxIndex * 80; // Using spacing of 80px
+
+  // Scroll handling
   let scrollY = 0;
-  let totalScrollHeight = 1000; // Total amount of scrolling needed to fully zoom out
+  let totalScrollHeight = 1500;
   
-  // Update scale based on scroll position
   function handleScroll() {
     scrollY = window.scrollY;
     
     // Calculate scale based on scroll position
-    // Map scroll from 0 -> totalScrollHeight to scale from maxScale -> minScale
     scale = maxScale - (scrollY / totalScrollHeight) * (maxScale - minScale);
-    
-    // Clamp scale between min and max values
     scale = Math.max(minScale, Math.min(maxScale, scale));
+    
+    // Calculate reveal progress
+    zoomProgress = 1 - ((scale - minScale) / (maxScale - minScale));
+    
+    // Show all rows when zoomed out enough
+    showAllRows = zoomProgress > 0.1;
   }
   
   onMount(() => {
-    // Set initial zoom
-    scale = maxScale;
-    
     // Add scroll event listener
     window.addEventListener('scroll', handleScroll);
     
@@ -80,79 +104,132 @@
 <svelte:window on:scroll={handleScroll} />
 
 <main>
+  <!-- Container with zoom transformation -->
   <div 
     class="content-wrapper"
     style="transform: scale({scale}); transform-origin: center center;"
   >
-    <!-- Multiple rows of Box SVGs with customizable positioning -->
-    {#each boxRows as row, rowIndex}
-      <div 
-        class="box-container" 
-        style="
-          height: {row.topPosition}px;
-          right: 0;
-          transform: translateX(-{row.rightOffset});
-        "
-      >
-        <div class="box-row-wrapper">
-          <!-- Using a loop to render the specified number of box SVGs horizontally -->
-          {#each Array(row.count) as _, i}
-            <div 
-              class="box-item"
-              style="
-                margin-right: {i < row.count - 1 ? row.spacing + 'px' : '0'};
-                width: {row.boxSize !== 'auto' ? row.boxSize : 'auto'};
-              "
-            >
-              <img src={boxSvgPath} alt="Box SVG" />
-            </div>
-          {/each}
-        </div>
+    <!-- Initial focused state - always visible but fades out after everything appears -->
+    <div 
+      class="single-box-container" 
+      style="
+        top: {boxRow.topPosition}px;
+        right: {boxPosition + parseInt(boxRow.rightOffset)}px;
+        opacity: {zoomProgress < 0.9 ? 1 : Math.max(0, 3 * (1 - zoomProgress))};
+        transition: opacity 0.5s ease;
+      "
+    >
+      <div class="box-item" style="width: {boxRow.boxSize};">
+        <img src={boxSvgPath} alt="Box SVG" />
       </div>
-    {/each}
+    </div>
 
-    <!-- Text notice SVGs on top of boxes -->
-    {#each textNoticeRows as row, rowIndex}
-      <div 
-        class="text-notice-container" 
-        style="
-          height: {row.topPosition}px;
-          right: 0;
-          transform: translateX(-{row.rightOffset});
-        "
-      >
-        <div class="text-notice-wrapper">
-          <!-- Using a loop to render the specified number of text notice SVGs horizontally -->
-          {#each Array(row.count) as _, i}
-            <div 
-              class="text-notice-item"
-              style="
-                margin-right: {i < row.count - 1 ? row.spacing + 'px' : '0'};
-                width: {row.size !== 'auto' ? row.size : 'auto'};
-              "
-            >
-              <img src={noticeSvgPath} alt="Notice SVG" />
-            </div>
-          {/each}
-        </div>
+    <!-- Single notice - always visible but fades out after everything appears -->
+    <div 
+      class="single-notice-container" 
+      style="
+        top: {noticeRow.topPosition}px;
+        right: {boxPosition + parseInt(noticeRow.rightOffset)}px;
+        opacity: {zoomProgress < 0.9 ? 1 : Math.max(0, 3 * (1 - zoomProgress))};
+        transition: opacity 0.5s ease;
+      "
+    >
+      <div class="text-notice-item" style="width: {noticeRow.size};">
+        <img src={noticeSvgPath} alt="Notice SVG" />
       </div>
-    {/each}
+    </div>
+
+    <!-- Rest of the boxes and notices - shown when zoomed out -->
+    {#if showAllRows}
+      <!-- Multiple rows of Box SVGs -->
+      {#each boxRows as row, rowIndex}
+        <div 
+          class="box-container" 
+          style="
+            height: {row.topPosition}px;
+            right: 0;
+            transform: translateX(-{row.rightOffset});
+            opacity: {Math.min(1, (zoomProgress - 0.3) * 1.5)};
+            transition: opacity 0.5s ease;
+          "
+        >
+          <div class="box-row-wrapper">
+            {#each Array(row.count) as _, i}
+              <div 
+                class="box-item"
+                style="
+                  margin-right: {i < row.count - 1 ? row.spacing + 'px' : '0'};
+                  width: {row.boxSize};
+                  /* Highlight the same box position in all rows */
+                  transform: scale({
+                    (row.count - 1 - i) === initialBoxIndex ? 
+                    (1 + (0.2 * (1 - Math.min(1, zoomProgress * 2)))) : 1
+                  });
+                  transition: transform 0.5s ease;
+                "
+              >
+                <img src={boxSvgPath} alt="Box SVG" />
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/each}
+
+      <!-- Text notice SVGs -->
+      {#each textNoticeRows as row, rowIndex}
+        <div 
+          class="text-notice-container" 
+          style="
+            height: {row.topPosition}px;
+            right: 0;
+            transform: translateX(-{row.rightOffset});
+            opacity: {Math.min(1, (zoomProgress - 0.3) * 1.5)};
+            transition: opacity 0.5s ease;
+          "
+        >
+          <div class="text-notice-wrapper">
+            {#each Array(row.count) as _, i}
+              <div 
+                class="text-notice-item"
+                style="
+                  margin-right: {i < row.count - 1 ? row.spacing + 'px' : '0'};
+                  width: {row.size};
+                  /* Highlight the same notice position in all rows */
+                  transform: scale({
+                    (row.count - 1 - i) === initialBoxIndex ? 
+                    (1 + (0.2 * (1 - Math.min(1, zoomProgress * 2)))) : 1
+                  });
+                  transition: transform 0.5s ease;
+                "
+              >
+                <img src={noticeSvgPath} alt="Notice SVG" />
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/each}
+    {/if}
     
-    <!-- Vertical line SVGs -->
+    <!-- Vertical line SVGs - always visible, opacity varies -->
     <div class="svg-container">
-      <!-- Using a loop to render 13 line SVGs vertically -->
       {#each Array(13) as _, i}
-        <div class="svg-item">
+        <div 
+          class="svg-item"
+          style="
+            opacity: {i === initialRowIndex ? 1 : Math.min(1, zoomProgress * 3)};
+            transition: opacity 0.5s ease;
+          "
+        >
           <img src={lineSvgPath} alt="Line SVG" />
         </div>
       {/each}
     </div>
   </div>
   
-  <!-- Overlay instructions (visible only when zoomed in) -->
+  <!-- Instructions -->
   {#if scale > 1.5}
-    <div class="instructions">
-      <p>Scroll down to zoom out</p>
+    <div class="instructions" style="opacity: {2 - zoomProgress};">
+      <p>Scroll down to zoom out and reveal more</p>
     </div>
   {/if}
 </main>
@@ -166,8 +243,8 @@
     background: #FCE9E0;
     min-height: 100vh;
     width: 100%;
-    overflow-x: hidden; /* Hide horizontal overflow */
-    position: relative; /* Set position context for absolute positioning */
+    overflow-x: hidden;
+    position: relative;
   }
 
   main {
@@ -176,21 +253,30 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Center content vertically */
-    position: fixed; /* Keep content fixed while scrolling */
+    justify-content: center;
+    position: fixed;
     top: 0;
     left: 0;
-    overflow: hidden;
+    overflow: visible;
   }
   
   .content-wrapper {
     position: relative;
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center; /* Center children vertically */
-    justify-content: center; /* Center children horizontally */
-    transition: transform 0.1s ease-out; /* Smooth transition when zooming */
+    transition: transform 0.1s ease-out;
+  }
+
+  /* Style for the initially focused single box */
+  .single-box-container {
+    position: absolute;
+    z-index: 10;
+  }
+
+  /* Style for the initially focused single notice */
+  .single-notice-container {
+    position: absolute;
+    z-index: 20;
   }
 
   /* Instructions overlay styles */
@@ -204,7 +290,7 @@
     padding: 10px 20px;
     border-radius: 20px;
     font-size: 16px;
-    pointer-events: none; /* Doesn't interfere with clicks */
+    pointer-events: none;
     z-index: 1000;
     opacity: 0.8;
     transition: opacity 0.3s ease;
@@ -217,34 +303,34 @@
     width: 100%;
     display: flex;
     flex-direction: row;
-    justify-content: flex-end; /* Align boxes from the right side */
-    z-index: 10; /* Make boxes appear above the lines */
+    justify-content: flex-end;
+    z-index: 10;
     box-sizing: border-box;
-    overflow: hidden; /* Hide boxes that are moved outside the container */
+    overflow: visible;
   }
 
   .box-row-wrapper {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end; /* Align boxes from the right side */
+    justify-content: flex-end;
     width: 100%;
   }
 
   .box-item {
     display: flex;
-    align-items: flex-end; /* Align items to the bottom */
+    align-items: flex-end;
     height: 100%;
-    flex-shrink: 0; /* Prevent items from shrinking */
-    position: relative; /* For maintaining position during scaling */
+    flex-shrink: 0;
+    position: relative;
   }
 
   .box-item img {
     height: auto;
     max-height: 100%;
-    width: 100%; /* Make image fill its container */
+    width: 100%;
     max-width: 100%;
     display: block;
-    object-fit: contain; /* Maintain aspect ratio */
+    object-fit: contain;
   }
 
   /* Text Notice SVG styles */
@@ -254,33 +340,33 @@
     width: 100%;
     display: flex;
     flex-direction: row;
-    justify-content: flex-end; /* Align items from the right side */
-    z-index: 20; /* Make text notices appear above the boxes */
+    justify-content: flex-end;
+    z-index: 20;
     box-sizing: border-box;
-    overflow: hidden; /* Hide items that are moved outside the container */
+    overflow: visible;
   }
 
   .text-notice-wrapper {
     display: flex;
     flex-direction: row;
-    justify-content: flex-end; /* Align items from the right side */
+    justify-content: flex-end;
     width: 100%;
   }
 
   .text-notice-item {
     display: flex;
-    align-items: flex-end; /* Align items to the bottom */
+    align-items: flex-end;
     height: 100%;
-    flex-shrink: 0; /* Prevent items from shrinking */
+    flex-shrink: 0;
   }
 
   .text-notice-item img {
     height: auto;
     max-height: 100%;
-    width: 100%; /* Make image fill its container */
+    width: 100%;
     max-width: 100%;
     display: block;
-    object-fit: contain; /* Maintain aspect ratio */
+    object-fit: contain;
   }
 
   /* Line SVG styles */
@@ -288,35 +374,36 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    padding-top: 30px; /* First SVG starts from the top */
+    padding-top: 53px;
     padding-bottom: 10px;
     height: calc(114vh - 228px);
+    position: relative;
+    z-index: 5;
   }
 
   .svg-item {
-    width: 100%; /* Make each item take full width */
-    flex: 1; /* Distribute available space evenly between items */
+    width: 100%;
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: visible; /* Allow SVG to overflow if needed */
+    overflow: visible;
   }
 
   .svg-item img {
-    width: 100%; /* Make image fill the full width */
-    height: auto; /* Maintain aspect ratio */
+    width: 100%;
+    height: auto;
     display: block;
   }
 
-  /* Media query for responsive behavior - ensure both boxes and notices scale together */
+  /* Media query for responsive behavior */
   @media (max-width: 768px) {
-    .box-container, .text-notice-container {
-      justify-content: flex-end; /* Keep right alignment on smaller screens */
+    .box-container, .text-notice-container, .single-box-container, .single-notice-container {
+      justify-content: flex-end;
     }
     
     .box-item, .text-notice-item {
-      /* Apply the same max-width to both for proportional scaling */
-      max-width: 80px; /* Example value - adjust as needed */
+      max-width: 80px;
     }
   }
 </style>
