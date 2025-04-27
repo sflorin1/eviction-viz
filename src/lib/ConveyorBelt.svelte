@@ -27,6 +27,7 @@
     export let fadingImage = 'nwbsu2jdeh6gemcm9xo0vhl62pyh.png';
     export let fadeInPos = -1000;
     export let fadeOutPos = -2000;
+    export let frames = [];
     let fadeInOpacity = 0;
     let showImage;
     const scrollY = writable(0);
@@ -65,12 +66,26 @@
   
 
   <img class = 'background-image' src = {'house.svg'}/>
+  {console.log(frames.length)}
+  {#each frames as frame}
+    {#if (x>frame.fadeInTime) & (x<frame.fadeOutTime)}
+      {console.log('image importing')}
+      <div class = "fade-in" transition:fade={{ duration: 400 }}>
+        <svelte:component 
+        this={frame.source} 
+        width={frame.width} 
+        height={frame.height}
+        />
+     </div>
+    {/if}
+  {/each}
+  <!--
   {#if showImage}
   <div class = "fade-in" style = "opacity: {fadeInOpacity}" transition:fade={{ duration: 400 }}>
     <img src = {fadingImage}/>
   
   </div>
-  {/if}
+  {/if}-->
   <div class="image-container">
     <div
       class="image-strip"
