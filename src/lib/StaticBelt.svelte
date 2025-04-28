@@ -489,7 +489,7 @@
       class="map-link-container"
       transition:fade={{ duration: 500 }}
     >
-      <a href="./" target="_blank" rel="noopener noreferrer">
+      <a href="./MapUpdated" target="_blank" rel="noopener noreferrer">
         Learn more about Serial Evictors in Boston
       </a>
     </div>
