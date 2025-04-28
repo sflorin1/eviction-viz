@@ -38,13 +38,13 @@
   <div class="content-wrapper">
     <div class="image-side">
       {#if imageLoaded}
-        <img src="Step3.png" alt="Step 3" class="main-image" />
+        <img src="Screenshot 2025-04-28 at 12.21.46 PM.png" alt="Step 3" class="main-image" />
       {:else}
         <div class="loading-placeholder">
           <img 
             bind:this={imgElement}
             class="preload-image" 
-            src="Step3.png" 
+            src="Screenshot 2025-04-28 at 12.21.46 PM.png" 
             alt="Step 3" 
           />
           Loading...

@@ -35,7 +35,7 @@
          style="width: {containerWidth}px; height: {containerHeight}px; 
                 transform: translate(-50%, -50%) scale({containerWidth/imgWidth});
                 left: 50%; top: 50%;">
-      <img src="Step5.png" alt="Step 5" style="transform: translateX({-450}px);"
+      <img src="Screenshot 2025-04-28 at 12.22.22 PM.png" alt="Step 5" style="transform: translateX({-450}px);"
       />
     </div>
   {:else}
@@ -43,7 +43,7 @@
       <img 
         bind:this={imgElement}
         class="preload-image" 
-        src="Step5.png" 
+        src="Screenshot 2025-04-28 at 12.22.22 PM.png" 
         alt="Step 5" 
       />
     </div>

@@ -334,7 +334,7 @@
 
     <div class="chart-container">
         <div class="chart-section">
-            <h2>Top Evictors by Number of Evictions</h2>
+            <h2>Top Evictors by Number of Eviction Filings</h2>
             <div id="waffle_chart">
                 <WaffleChart 
                     data={pieData} 
