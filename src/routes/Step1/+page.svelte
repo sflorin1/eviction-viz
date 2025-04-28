@@ -41,7 +41,7 @@
       font-family: 'Bebas Neue', sans-serif;
       font-size: 60px;
       font-weight: bold;
-      margin-right: 15px;
+      margin-right: 20px;
       line-height: 1;
       color: #14110F;
     }
