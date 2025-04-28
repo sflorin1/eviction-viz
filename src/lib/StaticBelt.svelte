@@ -11,10 +11,10 @@
     export let debug = false; // Debug mode
     
     // Paths for SVGs and images in a static folder
-    const lineSvgPath = '/hugeline.svg';
-    const boxSvgPath = '/box.svg';
-    const noticeSvgPath = '/notice.svg';
-    const evictionNoticeTitlePath = '/evictionnoticetitle.png';
+    const lineSvgPath = 'hugeline.svg';
+    const boxSvgPath = 'box.svg';
+    const noticeSvgPath = 'notice.svg';
+    const evictionNoticeTitlePath = 'evictionnoticetitle.png';
     
     // Initial focus configuration
     const initialRowIndex = 7; // 8th row (0-based index)
