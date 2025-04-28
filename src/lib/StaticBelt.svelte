@@ -45,7 +45,8 @@
     let maxScale = 3.5; // Max zoom in
     let zoomProgress = 0; // Progress of reveal (0-1)
     let showAllRows = false; // Flag to show all rows
-    
+    let showMapLink = false;
+
     // New values for eviction notice title animation
     const evictionTitleStartScroll = 500; // Start showing after 15px scroll
     const evictionTitleDuration = 900; // Show for 200px of scrolling
@@ -198,7 +199,7 @@
       // Calculate eviction title visibility
       showEvictionTitle = value >= evictionTitleStartScroll && value < evictionTitleEndScroll;
       evictionTitleOpacity = calculateEvictionTitleOpacity(value);
-      
+      showMapLink = value >= zoomOutEnd - 200;
       // First phase: Frame sequence and conveyor belt
       if (value < zoomStartPosition) {
         // Update conveyor belt position
@@ -483,7 +484,16 @@
       {/if}
     </p>
   </div>
-  
+  {#if showMapLink}
+    <div 
+      class="map-link-container"
+      transition:fade={{ duration: 500 }}
+    >
+      <a href="./" target="_blank" rel="noopener noreferrer">
+        Learn more about Serial Evictors in Boston
+      </a>
+    </div>
+  {/if}
   <!-- Debug information -->
   {#if debug}
     <div class="debug-info">
@@ -776,5 +786,25 @@
     .eviction-title-container img {
       max-width: 80%;
     }
+  }
+  .map-link-container {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 15px 25px;
+    border-radius: 8px;
+    background-color: #4285F4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .map-link-container a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
   }
 </style>
