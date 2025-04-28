@@ -36,7 +36,7 @@
      </div>
      
      <!-- Rectangle positioned to the right of the text -->
-     <div class="rectangle"></div>
+     <!--<div class="rectangle"></div>-->
    </div>
  </main>
  
