@@ -19,8 +19,8 @@
     import { writable } from 'svelte/store';
     import { fade } from 'svelte/transition';
   
-    export let converyorImage = '2b7d18b3f076964096123da411bbdefc.png';
-    export let count = 10;
+    export let conveyorImage = 'conveyorline.svg';
+    export let count = 100;
     export let gap = -180;
     export let slidingImage = 'house.svg'
     export let slidingImageStartingPos = 3000;
@@ -39,7 +39,7 @@
       };
   
       window.addEventListener('scroll', handleScroll);
-      document.body.style.backgroundColor = "#252422";
+      document.body.style.backgroundColor = "#FCE9E0";
       return () => window.removeEventListener('scroll', handleScroll);
     });
   
@@ -65,8 +65,7 @@
   </script>
   
 
-  <img class = 'background-image' src = {'house.svg'}/>
-  {console.log(frames.length)}
+  <img class = 'background-image' src = {'box.svg'}/>
   {#each frames as frame}
     {#if (x>frame.fadeInTime) & (x<frame.fadeOutTime)}
       {console.log('image importing')}
@@ -92,15 +91,14 @@
       style="transform: translateX({x}px); --gap: {gap}px"
     >
       {#each Array(count) as _, i}
-        <img src={converyorImage} alt="Repeated Image {i}" />
+        <img src={conveyorImage} alt="Repeated Image {i}" />
       {/each}
     </div>
-    <div
+   <!-- <div
     class="sliding-image"
     style="transform: translateX({x+slidingImageStartingPos}px);"
   >
-    <img src={slidingImage} />
-  </div>
+  </div>-->
     </div>
     
   
@@ -109,15 +107,16 @@
   <style>
     .background-image{
         position: fixed;
-        top: 200px;
-        left: 200px;
+        top: 583px;
+        left: 700px;
         width: 100px;
         height: 100px;
+        z-index: 1;
     }
     .fade-in{
         position: fixed;
-        top: 200px;
-        left: 600px;
+        top: 0px;
+        left: 400px;
     }
     .fade-in img{
         height: 300px;
@@ -126,12 +125,12 @@
     }
     .image-container {
     position: relative;
-    height: 1000vh;
+    height: 3000vh;
   }
 
   .image-strip {
     position: fixed;
-    top: 500px;
+    top: 650px;
     left: -100px;
     display: flex;
     
@@ -141,7 +140,7 @@
 
   .image-strip img {
     height: auto;
-    width: 2000px;
+    width: 5000px;
     margin-left: var(--gap);
   }
   .image-strip img:first-child {

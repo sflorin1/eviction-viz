@@ -1,10 +1,12 @@
 <script>
     import ConveyorBelt from "../../lib/ConveyorBelt.svelte";
     import TestPage from "../../lib/TestPage.svelte";
+    import Step1 from "../../lib/Step1.svelte"
 
-    let page = {source: TestPage,
-                width: 400,
-                height: 200,
+
+    let page = {source: Step1,
+                width: 800,
+                height: 800,
                 fadeInTime: -2000,
                 fadeOutTime: -1000
     }
