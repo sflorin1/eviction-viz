@@ -66,9 +66,9 @@
   
 
   <img class = 'background-image' src = {'box.svg'}/>
+  
   {#each frames as frame}
     {#if (x>frame.fadeInTime) & (x<frame.fadeOutTime)}
-      {console.log('image importing')}
       <div class = "fade-in" transition:fade={{ duration: 400 }}>
         <svelte:component 
         this={frame.source} 
@@ -113,10 +113,18 @@
         height: 100px;
         z-index: 1;
     }
+    
     .fade-in{
         position: fixed;
         top: 0px;
         left: 400px;
+        pointer-events: all; /* Changed from auto to all to ensure links work */
+        overflow: auto; /* allows scrolling */
+        z-index: -1; /* Ensure this is higher than other elements */
+    }
+    .fade-in :global(a) {
+        cursor: pointer; /* Make sure cursor shows this is clickable */
+        pointer-events: auto; /* Ensure links are clickable */
     }
     .fade-in img{
         height: 300px;
@@ -126,6 +134,7 @@
     .image-container {
     position: relative;
     height: 3000vh;
+    pointer-events: none; 
   }
 
   .image-strip {
@@ -136,6 +145,7 @@
     
     transition: transform 0.05s ease-out;
     will-change: transform;
+    z-index: 0; 
   }
 
   .image-strip img {

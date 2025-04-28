@@ -37,6 +37,7 @@
       height: 100vh;
       background-color: #FCE9E0;
       padding: 0;
+      pointer-events: none;
     }
     
     .header-section {
