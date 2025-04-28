@@ -34,36 +34,27 @@
    display: flex;
    align-items: center;
     }
-<<<<<<< Updated upstream
     
     .number {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 60px;
       font-weight: bold;
-      margin-right: 20px;
+      margin-right: 15px;
       line-height: 1;
       color: #14110F;
-=======
-   .number {
-   font-family: 'Bebas Neue', sans-serif;
-   font-size: 60px;
-   font-weight: bold;
-   margin-right: 15px;
-   line-height: 1;
-   color: #14110F;
->>>>>>> Stashed changes
     }
-   .title-box {
-   background-color: #000000;
-   color: white;
-   border-radius: 12px;
-   padding: 8px 20px;
-   font-family: 'Bebas Neue', sans-serif;
-   font-size: 48px;
-   letter-spacing: 1px;
-   display: inline-block;
-   height: 60px;
-   line-height: 60px;
+    
+    .title-box {
+      background-color: #000000;
+      color: white;
+      border-radius: 12px;
+      padding: 8px 20px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px;
+      letter-spacing: 1px;
+      display: inline-block;
+      height: 60px;
+      line-height: 60px;
     }
    .notice-container {
    position: absolute;
