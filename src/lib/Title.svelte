@@ -19,7 +19,7 @@
   <main style="transform: scale({scaleX}, {scaleY}); transform-origin: top left; {style}">
     <div class="desktop">
       <div class="boston-serial-evictors">
-        <span class="title-text">BOSTON SERIAL EVICTORS</span>
+        <span class="title-text">BOSTON'S RENTAL POWER DYNAMICS</span>
       </div>
     </div>
   </main>
@@ -38,7 +38,8 @@
     
     .title-text {
       color: black;
-      font-size: 90px;
+      text-align: center;
+      font-size: 60px;
       font-family: 'Coda Caption', sans-serif;
       font-weight: 800;
       word-wrap: break-word;
@@ -46,7 +47,7 @@
     
     .boston-serial-evictors {
       left: 176px;
-      top: 420px;
+      top: 450px;
       position: absolute;
     }
     
