@@ -139,7 +139,7 @@
                 <div class="legend-color" style="background-color: {colorScale(data.findIndex(d => d.label === item.label))};"></div>
                 <div class="legend-label">{item.label}</div>
               </div>
-              <div class="legend-value">Number of evictions: {item.value}</div>
+              <div class="legend-value">{item.value} evictions</div>
             </div>
           {/each}
         </div>

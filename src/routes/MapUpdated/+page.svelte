@@ -152,7 +152,20 @@
             document.head.appendChild(link);
         });
     }
-    
+    let groupedTotalEvictionsByAddress;
+    let rScale;
+    $: {groupedTotalEvictionsByAddress = d3.rollups(
+        evictions,
+        v => v.length,
+        d => d.add_p
+    ).reduce((acc, [key, count]) => {
+        acc[key] = count;
+        return acc;
+    }, {});
+    rScale = d3.scaleSqrt()
+        .domain(d3.extent(Object.values(groupedTotalEvictionsByAddress)))
+        .range([4, 12]);
+    }
     let cutoff = 30;
     
     $: {
@@ -190,9 +203,6 @@
         return acc;
     }, {});
     
-    $: rScale = d3.scaleSqrt()
-        .domain(d3.extent(Object.values(groupedEvictionsByAddress)))
-        .range([4, 12]);
     
     $: selectedEvictor = selectedEvictorIndex > -1 ? pieData[selectedEvictorIndex].label : null;
     
@@ -211,7 +221,7 @@
         return acc;
     }, {});
 
-    $: rScale = d3.scaleSqrt().domain(d3.extent(Object.values(groupedEvictionsByAddress))).range([4,12]);
+    //$: rScale = d3.scaleSqrt().domain(d3.extent(Object.values(groupedEvictionsByAddress))).range([4,12]);
     //$: rScale = d3.scaleSqrt()
     //	    .domain([0, d3.max(filteredStations, d => d.totalTraffic) || 0])
     //	    .range(radiusRange);
