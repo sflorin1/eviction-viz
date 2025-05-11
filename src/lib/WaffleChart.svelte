@@ -4,40 +4,59 @@
 
   export let data = [];
   export let selectedIndex = -1;
-  export let rows = 10;
-  export let columns = 30; // Default to wider chart 
+  export let rows = 15; // Increased from 10 to 15
+  export let columns = 40; // Increased from 30 to 40
   export let cellSize = 20;
   export let cellPadding = 2;
-  export let cellBorderRadius = 0; // Changed to 0 for completely square corners
+  export let cellBorderRadius = 0; // Square corners
 
   const dispatch = createEventDispatcher();
 
   let totalItems = 0;
   let processedData = [];
-  let colorScale;
   let width = columns * cellSize;
   let height = rows * cellSize;
 
-  // Categorize data into three groups
+  // Categorize data into groups
   let categorizedData = {
-    high: [], // More than 70 evictions
-    medium: [], // More than 30 evictions
-    low: [] // Less than 30 evictions
+    high: [], // More than 100 evictions
+    medium: [], // More than 50 evictions
+    grey: [], // More than 30 evictions but less than 50 (to be shown in grey)
+    other: [] // Less than 30 evictions or "Other" category
   };
+
+  // Calculate percentage for top evictors
+  let topEvictorsPercentage = 0;
+
+  // Create color scales for each category - intense colors for highest values
+  // Changed from red to bright blue
+  const blueScale = d3.scaleLinear()
+    .domain([1, 0])
+    .range(["#0047AB", "#99CCFF"]) // Bright blue to light blue
+    .interpolate(d3.interpolateHcl);
+
+  // Kept orange but made it brighter
+  const orangeScale = d3.scaleLinear()
+    .domain([1, 0])
+    .range(["#FF8C00", "#FFD700"]) // Bright orange to gold
+    .interpolate(d3.interpolateHcl);
 
   $: {
     totalItems = d3.sum(data, d => d.value);
     
-    // Categorize the data (exclude "Other" from categorization for display)
+    // Categorize the data
     categorizedData = {
-      high: data.filter(d => d.value > 70 && !d.isOther),
-      medium: data.filter(d => d.value > 30 && d.value <= 70 && !d.isOther),
-      low: data.filter(d => d.value <= 30 && !d.isOther)
+      high: data.filter(d => d.value > 100 && !d.isOther),
+      medium: data.filter(d => d.value > 50 && d.value <= 100 && !d.isOther),
+      grey: data.filter(d => d.value > 30 && d.value <= 50 && !d.isOther),
+      other: data.filter(d => d.value <= 30 || d.isOther)
     };
     
-    // Make the chart wider by adjusting columns - target a width similar to the legend's width
-    columns = 30; // Increased from default 20 to make the chart wider
-    width = columns * cellSize; // Update the width based on new columns value
+    // Calculate the percentage of evictions from top 11 evictors (high & medium categories)
+    const topEvictorsTotal = d3.sum([...categorizedData.high, ...categorizedData.medium], d => d.value);
+    topEvictorsPercentage = Math.round((topEvictorsTotal / totalItems) * 100);
+    
+    width = columns * cellSize;
     
     // Calculate how many cells each item needs
     const totalCells = rows * columns;
@@ -49,17 +68,40 @@
         index: i
       };
     });
-    
-    // Generate a color scale for the data items
-    colorScale = function(i) {
-      // Check if this is the "Other" category
-      if (data[i] && data[i].isOther) {
-        return "#FFFFFF"; // White color for "Other"
-      }
-      // Otherwise use the standard color scale
-      const colorScheme = d3.schemeTableau10;
-      return colorScheme[i % colorScheme.length];
-    };
+  }
+
+  function getColor(item, index) {
+    // First check if this is the "Other" category
+    if (item.isOther) {
+      // White for "Other"
+      return "#FFFFFF";
+    } else if (item.value > 100) {
+      // Blue scale for high values - most intense for highest value
+      const highItems = categorizedData.high;
+      // Sort items by value - highest value gets position 0 (most intense color)
+      const sortedHighItems = [...highItems].sort((a, b) => b.value - a.value);
+      // Find position of this item in sorted array
+      const itemPosition = sortedHighItems.findIndex(d => d.label === item.label);
+      // Normalize position to 0-1 range, reversed so highest value gets 0 (most intense)
+      const normalizedPosition = 1 - (itemPosition / Math.max(1, highItems.length - 1));
+      return blueScale(normalizedPosition);
+    } else if (item.value > 50) {
+      // Orange scale for medium values - most intense for highest value
+      const mediumItems = categorizedData.medium;
+      // Sort items by value - highest value gets position 0 (most intense color)
+      const sortedMediumItems = [...mediumItems].sort((a, b) => b.value - a.value);
+      // Find position of this item in sorted array
+      const itemPosition = sortedMediumItems.findIndex(d => d.label === item.label);
+      // Normalize position to 0-1 range, reversed so highest value gets 0 (most intense)
+      const normalizedPosition = 1 - (itemPosition / Math.max(1, mediumItems.length - 1));
+      return orangeScale(normalizedPosition);
+    } else if (item.value > 30) {
+      // Grey for items between 30 and 50
+      return "#FFFFFF";  // Light grey instead of white for better distinction
+    } else {
+      // Light grey for low values
+      return "#FFFFFF";
+    }
   }
 
   function handleLegendClick(index, event) {
@@ -104,6 +146,11 @@
 </script>
 
 <div class="waffle-container">
+  <!-- Total eviction notices -->
+  <div class="total-evictions">
+    <h3>Total Eviction Notices: {totalItems}</h3>
+  </div>
+  
   <div class="waffle-chart" on:click|stopPropagation>
     <svg width={width} height={height}>
       {#each cells as cell}
@@ -114,7 +161,7 @@
           y={cell.y + cellPadding / 2}
           rx={cellBorderRadius}
           ry={cellBorderRadius}
-          fill={colorScale(cell.index)}
+          fill={getColor(cell.dataItem, cell.index)}
           stroke={cell.dataItem?.isOther ? "#dddddd" : "none"}
           stroke-width={cell.dataItem?.isOther ? 1 : 0}
           opacity={selectedIndex === -1 || selectedIndex === cell.index ? 1 : 0.3}
@@ -127,16 +174,16 @@
     <div class="legend-columns">
       <!-- High evictions column -->
       <div class="legend-column">
-        <h3>More than 70 evictions</h3>
+        <h3>More than 100 evictions</h3>
         <div class="legend-items">
-          {#each categorizedData.high as item, i}
+          {#each [...categorizedData.high].sort((a, b) => b.value - a.value) as item, i}
             <div 
               class="legend-item" 
               class:selected={selectedIndex === data.findIndex(d => d.label === item.label)}
               on:click={(e) => handleLegendClick(data.findIndex(d => d.label === item.label), e)}
             >
               <div class="legend-item-container">
-                <div class="legend-color" style="background-color: {colorScale(data.findIndex(d => d.label === item.label))};"></div>
+                <div class="legend-color" style="background-color: {getColor(item)};"></div>
                 <div class="legend-label">{item.label}</div>
               </div>
               <div class="legend-value">{item.value} evictions</div>
@@ -147,59 +194,44 @@
       
       <!-- Medium evictions column -->
       <div class="legend-column">
-        <h3>More than 30 evictions</h3>
+        <h3>More than 50 evictions</h3>
         <div class="legend-items">
-          {#each categorizedData.medium as item, i}
+          {#each [...categorizedData.medium].sort((a, b) => b.value - a.value) as item, i}
             <div 
               class="legend-item" 
               class:selected={selectedIndex === data.findIndex(d => d.label === item.label)}
               on:click={(e) => handleLegendClick(data.findIndex(d => d.label === item.label), e)}
             >
               <div class="legend-item-container">
-                <div class="legend-color" style="background-color: {colorScale(data.findIndex(d => d.label === item.label))};"></div>
+                <div class="legend-color" style="background-color: {getColor(item)};"></div>
                 <div class="legend-label">{item.label}</div>
               </div>
-              <div class="legend-value">Number of evictions: {item.value}</div>
-            </div>
-          {/each}
-        </div>
-      </div>
-      
-      <!-- Low evictions column -->
-      <div class="legend-column">
-        <h3>Less than 30 evictions</h3>
-        <div class="legend-items">
-          {#each categorizedData.low as item, i}
-            <div 
-              class="legend-item" 
-              class:selected={selectedIndex === data.findIndex(d => d.label === item.label)}
-              on:click={(e) => handleLegendClick(data.findIndex(d => d.label === item.label), e)}
-            >
-              <div class="legend-item-container">
-                <div class="legend-color" style="background-color: {colorScale(data.findIndex(d => d.label === item.label))};"></div>
-                <div class="legend-label">{item.label}</div>
-              </div>
-              <div class="legend-value">Number of evictions: {item.value}</div>
+              <div class="legend-value">{item.value} evictions</div>
             </div>
           {/each}
         </div>
       </div>
     </div>
   </div>
+  
+  <!-- Percentage information -->
+  <div class="evictors-percentage">
+    <p>The 11 evictors shown are responsible for <strong>{topEvictorsPercentage}%</strong> of eviction notices</p>
+  </div>
 </div>
 
 <style>
   .waffle-container {
     display: flex;
-    flex-direction: column; /* Changed from row to column for stacking */
+    flex-direction: column;
     width: 100%;
     margin: 0 auto;
-    gap: 20px; /* Reduced from 30px for vertical stacking */
-    align-items: center; /* Center horizontally */
+    gap: 20px;
+    align-items: center;
   }
   
   .waffle-chart {
-    width: 100%; /* Use full width */
+    width: 100%;
     display: flex;
     justify-content: center;
     background-color: rgba(255, 255, 255, 0.3);
@@ -209,7 +241,7 @@
   }
   
   .legend-wrapper {
-    width: 100%; /* Use full width */
+    width: 100%;
     overflow-y: auto;
     max-height: 450px;
     background-color: rgba(255, 255, 255, 0.3);
@@ -237,6 +269,7 @@
     letter-spacing: 1px;
     font-size: 1rem;
     white-space: nowrap;
+    text-align: center;
   }
   
   .legend-items {
@@ -303,6 +336,46 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  
+  .total-evictions {
+    background-color: rgba(245, 245, 245, 0.8);
+    padding: 12px 20px;
+    border-radius: 6px;
+    text-align: center;
+    margin-bottom: 15px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .total-evictions h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    margin: 0;
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+    color: #333;
+  }
+  
+  .evictors-percentage {
+    background-color: rgba(245, 245, 245, 0.8);
+    padding: 12px 20px;
+    border-radius: 6px;
+    text-align: center;
+    margin-top: 15px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .evictors-percentage p {
+    font-family: 'Inconsolata', monospace;
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+  }
+  
+  .evictors-percentage strong {
+    color: #0047AB; /* Changed from #990000 to blue to match the new color scheme */
+    font-size: 1.2rem;
   }
   
   /* Adjusted responsive design for different screen sizes */
