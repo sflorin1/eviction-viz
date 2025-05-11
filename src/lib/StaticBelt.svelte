@@ -3,6 +3,8 @@
     import { onMount } from 'svelte';
     import { writable } from 'svelte/store';
     import { fade } from 'svelte/transition';
+    import MapSlide from './MapSlide.svelte';
+
     
     // Accept frames as a prop
     export let frames = [];
@@ -12,7 +14,8 @@
     
     // Paths for SVGs and images in a static folder
     const lineSvgPath = 'hugeline.svg';
-    const boxSvgPath = 'box.svg';
+    const boxSvgPath = 'box0.svg';
+
     const noticeSvgPath = 'notice.svg';
     const evictionNoticeTitlePath = 'evictionnoticetitle.png';
     
@@ -48,7 +51,7 @@
     let showMapLink = false;
 
     // New values for eviction notice title animation
-    const evictionTitleStartScroll = 500; // Start showing after 15px scroll
+    const evictionTitleStartScroll = 700; // Start showing after 15px scroll
     const evictionTitleDuration = 900; // Show for 200px of scrolling
     const evictionTitleEndScroll = evictionTitleStartScroll + evictionTitleDuration;
     
@@ -62,7 +65,8 @@
     const frameCount = frames.length;
     const preZoomScrollHeight = frameCount * frameSegmentSize; // Total pre-zoom scroll height
     const zoomScrollHeight = 1500; // Zoom phase scroll height (per your requirement)
-    const totalScrollHeight = preZoomScrollHeight + zoomScrollHeight; // Total scrollable height
+    const totalScrollHeight = preZoomScrollHeight + zoomScrollHeight + BOX_Y_SCROLL + MAP_Y_SCROLL; // Total scrollable height
+
     
     // Calculate frame transition points - completely recalculated
     const frameTransitions = frames.map((_, index) => {
@@ -80,37 +84,6 @@
     });
     
     // Full configuration (for later reveal)
-    const boxRows = [
-      { topPosition: 80, count: 13, rightOffset: 0, spacing: 80, boxSize: '65px' },
-      { topPosition: 150, count: 13, rightOffset: 70, spacing: 80, boxSize: '65px' },
-      { topPosition: 220, count: 13, rightOffset: 0, spacing: 80, boxSize: '65px' },
-      { topPosition: 290, count: 13, rightOffset: 70, spacing: 80, boxSize: '65px' },
-      { topPosition: 360, count: 13, rightOffset: 0, spacing: 80, boxSize: '65px' },
-      { topPosition: 430, count: 13, rightOffset: 70, spacing: 80, boxSize: '65px' },
-      { topPosition: 500, count: 13, rightOffset: 0, spacing: 80, boxSize: '65px' },
-      { topPosition: 570, count: 13, rightOffset: 70, spacing: 80, boxSize: '65px' },
-      { topPosition: 640, count: 13, rightOffset: 0, spacing: 80, boxSize: '65px' },
-      { topPosition: 710, count: 13, rightOffset: 70, spacing: 80, boxSize: '65px' },
-      { topPosition: 780, count: 13, rightOffset: 0, spacing: 80, boxSize: '65px' },
-      { topPosition: 850, count: 13, rightOffset: 70, spacing: 80, boxSize: '65px' },
-      { topPosition: 920, count: 13, rightOffset: 0, spacing: 80, boxSize: '65px' }
-    ];
-
-    const textNoticeRows = [
-      { topPosition: 76, count: 13, rightOffset: 23, spacing: 120, size: '25px' },
-      { topPosition: 146, count: 13, rightOffset: 92, spacing: 120, size: '25px' },
-      { topPosition: 216, count: 13, rightOffset: 23, spacing: 120, size: '25px' },
-      { topPosition: 286, count: 13, rightOffset: 92, spacing: 120, size: '25px' },
-      { topPosition: 356, count: 13, rightOffset: 23, spacing: 120, size: '25px' },
-      { topPosition: 426, count: 13, rightOffset: 92, spacing: 120, size: '25px' },
-      { topPosition: 496, count: 13, rightOffset: 23, spacing: 120, size: '25px'},
-      { topPosition: 566, count: 13, rightOffset: 92, spacing: 120, size: '25px' },
-      { topPosition: 636, count: 13, rightOffset: 23, spacing: 120, size: '25px' },
-      { topPosition: 706, count: 13, rightOffset: 92, spacing: 120, size: '25px' },
-      { topPosition: 776, count: 13, rightOffset: 23, spacing: 120, size: '25px'},
-      { topPosition: 846, count: 13, rightOffset: 92, spacing: 120, size: '25px' },
-      { topPosition: 916, count: 13, rightOffset: 23, spacing: 120, size: '25px' }
-    ];
     
     // Scroll tracking
     const scrollY = writable(0);
@@ -170,6 +143,11 @@
             return 0;
         }
     }
+
+    function getSlideIndex(scrollPos) {
+        return frameTransitions.map(x => x.startFadeIn).filter(x => x < scrollPos).length;
+    }
+
     
     // New helper function to calculate frame opacity based on revised transition points
     function calculateFrameOpacity(frameIndex, scrollPos) {
@@ -190,6 +168,53 @@
         // Not visible
         else {
             return 0;
+        }
+    }
+
+    // New helper function to calculate frame opacity based on revised transition points
+    function calculateFrameOpacityBoxes(scrollPos) {
+        const fullyVisible = zoomStartPosition + BOX_Y_SCROLL - (frameFadeTransition * 2);
+        const startFadeOut = fullyVisible + frameFadeTransition;
+        const fullyHidden = fullyVisible + (frameFadeTransition * 2);
+        
+        // Fully visible
+        if (scrollPos >= fullyVisible && scrollPos < startFadeOut) {
+            return 1;
+        }
+        // Fade out
+        else if (scrollPos >= startFadeOut && scrollPos < fullyHidden) {
+            return 1 - ((scrollPos - startFadeOut) / frameFadeTransition);
+        }
+    }
+
+    // New helper function to calculate frame opacity based on revised transition points
+    function calculateFrameOpacityMap(scrollPos) {
+        const MAP_FADE_TRANSITION = 200;
+        const transition = zoomStartPosition + BOX_Y_SCROLL;
+        const fullyVisible = transition + MAP_FADE_TRANSITION;
+        
+        // Fade in
+        if (scrollPos >= transition && scrollPos < fullyVisible) {
+            return (scrollPos - transition) / MAP_FADE_TRANSITION;
+        }
+        // Fully visible
+        else if (scrollPos >= fullyVisible) {
+            return 1;
+        }
+    }
+
+    // New helper function to calculate frame opacity based on revised transition points
+    function calculateFrameOpacityLast(scrollPos) {
+        const transition = zoomStartPosition + BOX_Y_SCROLL + MAP_Y_SCROLL;
+        const fullyVisible = transition + frameFadeTransition;
+        
+        // Fade in
+        if (scrollPos >= transition && scrollPos < fullyVisible) {
+            return (scrollPos - transition) / frameFadeTransition;
+        }
+        // Fully visible
+        else if (scrollPos >= fullyVisible) {
+            return 1;
         }
     }
     
@@ -299,6 +324,10 @@
         mounted = false;
       };
     });
+
+    const BOX_Y_SCROLL = 4000;
+    const MAP_Y_SCROLL = 3000;
+
 </script>
 
 <main>
@@ -308,7 +337,7 @@
       class="eviction-title-container"
       style="opacity: {evictionTitleOpacity};"
     >
-      <img src={evictionNoticeTitlePath} alt="Eviction Notice Title" />
+      <img src={evictionNoticeTitlePath} alt="Eviction Notice Title" style=""/>
     </div>
   {/if}
 
@@ -326,9 +355,9 @@
         opacity: {currentScroll >= zoomStartPosition ? (zoomProgress < 0.9 ? 1 : Math.max(0, 3 * (1 - zoomProgress))) : 1};
       "
     >
-      <div class="box-item" style="width: {boxRow.boxSize};">
+      <!--<div class="box-item-new1" style="width: {boxRow.boxSize};">
         <img src={boxSvgPath} alt="Box SVG" />
-      </div>
+      </div>-->
     </div>
 
     <!-- Single notice - Always visible during framed sequence -->
@@ -343,86 +372,36 @@
       <div class="text-notice-item" style="width: {noticeRow.size};">
         <img src={noticeSvgPath} alt="Notice SVG" />
       </div>
-    </div>
-    
+    </div>  
     <!-- Phase 2: Show all rows when zoomed out in second phase -->
-    {#if showAllRows && currentScroll >= zoomStartPosition}
-      <!-- Multiple rows of Box SVGs -->
-      {#each boxRows as row, rowIndex}
-        <div 
-          class="box-container" 
-          style="
-            height: {row.topPosition}px;
-            right: 0;
-            transform: translateX(-{row.rightOffset}px);
-            opacity: 1; /* Instant pop-in, no fade */
-            transition: transform 0.3s ease;
-          "
-        >
-          <div class="box-row-wrapper">
-            {#each Array(row.count) as _, i}
-              <div 
-                class="box-item"
-                style="
-                  margin-right: {i < row.count - 1 ? row.spacing + 'px' : '0'};
-                  width: {row.boxSize};
-                  transform: scale(1); /* Remove scaling animation for stable boxes */
-                  transition: none; /* Remove transition for boxes */
-                "
-              >
-                <img src={boxSvgPath} alt="Box SVG" />
-              </div>
-            {/each}
-          </div>
-        </div>
-      {/each}
+    {#if showAllRows && currentScroll >= zoomStartPosition && currentScroll < (zoomStartPosition + BOX_Y_SCROLL)}
 
-      <!-- Text notice SVGs -->
-      {#each textNoticeRows as row, rowIndex}
-        <div 
-          class="text-notice-container" 
-          style="
-            height: {row.topPosition}px;
-            right: 0;
-            transform: translateX(-{row.rightOffset}px);
-            opacity: 1; /* Instant pop-in, no fade */
-            transition: none; /* Remove transition to prevent animation glitches */
-          "
-        >
-          <div class="text-notice-wrapper">
-            {#each Array(row.count) as _, i}
-              <div 
-                class="text-notice-item"
-                style="
-                  margin-right: {i < row.count - 1 ? row.spacing + 'px' : '0'};
-                  width: {row.size};
-                  transform: scale(1); /* Remove scaling animation for stable notices */
-                  transition: none; /* Remove transition for notices */
-                "
-              >
-                <img src={noticeSvgPath} alt="Notice SVG" />
-              </div>
-            {/each}
-          </div>
-        </div>
-      {/each}
-      
       <!-- Phase 2: Vertical line SVGs - always visible in phase 2 -->
-      <div class="svg-container">
-        {#each Array(13) as _, i}
-          <div 
-            class="svg-item"
-            style="
-              opacity: 1; /* Instant pop-in, no fade */
-              transition: transform 0.3s ease;
-            "
-          >
-            <img src={lineSvgPath} alt="Line SVG" />
-          </div>
-        {/each}
+      <div class="svg-container" style="opacity: {calculateFrameOpacityBoxes(currentScroll)};">
+        <img src="../../zoomout-belt.png">
+
       </div>
     {/if}
   </div>
+
+  {#if showAllRows && currentScroll >= (zoomStartPosition + BOX_Y_SCROLL) && currentScroll < (zoomStartPosition + BOX_Y_SCROLL + MAP_Y_SCROLL)}
+    <div>
+      <div class="map-container" style="opacity: {calculateFrameOpacityMap(currentScroll)};">
+        <div class="map-container-inner">
+          <MapSlide/>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  <!-- FINAL SLIDE GOES HERE, this is a placeholder -->
+  {#if showAllRows && currentScroll >= (zoomStartPosition + BOX_Y_SCROLL + MAP_Y_SCROLL)}
+    <div>
+      <div class="last-container" style="opacity: {calculateFrameOpacityLast(currentScroll)};">
+        <div>PLACEHOLDER: I'm on the end of the scroll.</div>
+      </div>
+    </div>
+  {/if}
   
   <!-- Conveyor Belt implementation for hugelines -->
   <div 
@@ -440,6 +419,13 @@
         </div>
       {/each}
     </div>
+    
+    <!-- Put 20 boxes on screen, wrap them, spawn 1000px to left-->
+    {#each Array(20) as _, i}
+      <div class="box-item-new1" style="transform: translateX({((x + (i * 200)) % 4000) - 1000}px); --gap: {gap}px">
+        <img src={`box${Math.min(Math.max(0, (getSlideIndex(currentScroll) - 2)),6)}.svg`} alt="Box SVG" width={153} height={87} />
+      </div>
+    {/each}
   </div>
   
   <!-- Center Frame Container - always maintains center position -->
@@ -451,6 +437,7 @@
           class="frame-container" 
           style="
             {frame.style || ''}
+            z-index: {50+(calculateFrameOpacity(index, currentScroll) > 0 ? 10 : 0)};
             opacity: {calculateFrameOpacity(index, currentScroll)};
           "
         >
@@ -484,16 +471,6 @@
       {/if}
     </p>
   </div>
-  {#if showMapLink}
-    <div 
-      class="map-link-container"
-      transition:fade={{ duration: 500 }}
-    >
-      <a href="./MapUpdated" target="_blank" rel="noopener noreferrer">
-        Learn more about Serial Evictors in Boston
-      </a>
-    </div>
-  {/if}
   <!-- Debug information -->
   {#if debug}
     <div class="debug-info">
@@ -513,7 +490,7 @@
 </main>
 
 <!-- Make the page scrollable -->
-<div class="scroll-container" style="height: {totalScrollHeight}vh;"></div>
+<div class="scroll-container" style="height: {totalScrollHeight}px;"></div>
 
 <style>
   main {
@@ -541,7 +518,7 @@
   /* Eviction Notice Title styles */
   .eviction-title-container {
     position: fixed;
-    top: 40%;
+    top: 32%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 100;
@@ -550,6 +527,7 @@
     align-items: center;
     transition: opacity 0.2s ease;
     pointer-events: none;
+    max-width: 35%;
   }
 
   .eviction-title-container img {
@@ -579,6 +557,7 @@
     left: 0;
     width: 100%;
     height: 100vh;
+    padding: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -590,7 +569,13 @@
   .frame-container {
     position: absolute;
     display: flex;
-    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    align-items: top;
+    top: 100px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
     justify-content: center;
     pointer-events: all; /* Ensure links and interactions work */
     transition: opacity 0.2s ease; /* Faster transitions */
@@ -618,14 +603,15 @@
   /* Instructions overlay styles */
   .instructions {
     position: fixed;
-    bottom: 20px;
+    bottom: 7px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.7);
     color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-size: 16px;
+    padding: 0px 20px;
+    border-radius: 15px;
+    font-size: 15px;
+    line-height: 1.2;
     pointer-events: none;
     z-index: 1000;
     opacity: 0.8;
@@ -714,7 +700,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    padding-top: 53px;
+    padding-top: 0px;
     padding-bottom: 10px;
     height: calc(114vh - 228px);
     position: relative;
@@ -741,7 +727,7 @@
     position: fixed;
     width: 100%;
     height: 100vh;
-    z-index: 5;
+    z-index: 100;
     overflow: hidden;
     pointer-events: none;
     transition: opacity 0.5s ease;
@@ -749,7 +735,7 @@
   
   .conveyor-belt {
     position: absolute;
-    top: 730px; /* Original positioning */
+    bottom: 60px; /* Original positioning */
     left: 0;
     width: 100%;
     display: flex;
@@ -760,7 +746,14 @@
   
   .conveyor-item {
     flex-shrink: 0;
+    z-index: 110;
     margin-left: var(--gap);
+  }
+
+  .box-item-new1 {
+    position: absolute;
+    bottom: 110px; /* Original positioning */
+    transition: transform 0.05s ease-out;
   }
   
   .conveyor-item:first-child {
@@ -787,18 +780,16 @@
       max-width: 80%;
     }
   }
-  .map-link-container {
-    position: fixed;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    padding: 15px 25px;
-    border-radius: 8px;
-    background-color: #4285F4;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  .map-container {
+    height: 100vh;
+    width: 100vw;
+    z-index: 200;
+    position: relative;
   }
-  
+
+  .map-container-inner {
+    margin: 0;
+  }
   .map-link-container a {
     color: white;
     text-decoration: none;

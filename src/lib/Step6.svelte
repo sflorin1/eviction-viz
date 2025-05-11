@@ -29,56 +29,133 @@
   });
 </script>
 
-<div class="image-wrapper" style="width: {width}px; height: {height}px; {style}">
-  {#if imageLoaded}
-    <div class="scaled-container" 
-         style="width: {containerWidth}px; height: {containerHeight}px; 
-                transform: translate(-50%, -50%) scale({containerWidth/imgWidth});
-                left: 50%; top: 50%;">
-      <img src="Step6.png" alt="Step 6" style="transform: translateX({-400}px);"
-      />
+<body>
+  <div class="content-container">
+    <div class="text-left">
+      <div class="text-left-inner">
+      <div class="header-section">
+        <div class="number">#6</div>
+        <div> <span class="title-highlight">EXECUTION & MOVING DAY</span></div>
+      </div>
+      
+      <div class="text-section">
+        <div class="body-text">
+          <p>
+            If you lose the appeal, you must 
+            <span class="highlight">move out within 48 hours.</span> A marshal will post a notice, and 
+            lockouts typically happen about nine days later.
+          </p>
+          <p>
+            Move-out, locksmith, and storage fees — 
+            <span class="highlight">averaging $1,150</span> — are billed to the tenant.
+          </p>
+        </div>
+      </div>
+      </div>
     </div>
-  {:else}
-    <div class="loading-container">
-      <img 
-        bind:this={imgElement}
-        class="preload-image" 
-        src="Step6.png" 
-        alt="Step 6" 
-      />
+
+    <div class="chart-right">
+      <div class="chart">
+        <p>Image ???</p>
+      </div>
     </div>
-  {/if}
-</div>
+  </div>
+</body>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
-  
-  .image-wrapper {
-    position: relative;
+
+  .content-container {
+    width: 90%;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    column-gap: 1rem;
+    max-height: calc(100vh - 320px);
     overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding-top: 15px;
+    gap: 3rem;
   }
-  
-  .scaled-container {
-    position: absolute;
-    pointer-events: all;
-    transform-origin: center;
-  }
-  
-  .scaled-container img {
+
+  .text-left {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 2;
+    grid-column: 1;
     width: 100%;
     height: 100%;
-    object-fit: contain;
   }
-  
-  .loading-container {
-    display: none;
+
+  .chart-right {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
   }
-  
-  .preload-image {
-    visibility: hidden;
-    position: absolute;
+
+  .chart {
+    align-self: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .header-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    font-weight: bold;
+    margin-right: 15px;
+    line-height: 1;
+    color: #14110F;
+    width: 1fr;
+  }
+
+  .body-text {
+    color: #14110F;
+    font-size: clamp(12px, 3.5vw, 15px);
+    font-family: 'Geist Mono', monospace;
+    font-weight: 400;
+    word-wrap: break-word;
+    line-height: 1.6;
+    margin-top: 3.5rem;
+  }
+
+  .footnote {
+    color: #14110F;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    word-wrap: break-word;
+    line-height: 1.7;
+  }
+
+  a {
+    color: #3E3E3D;
+  }
+
+  .highlight {
+    background-color: #06D6A0;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+
+  .title-highlight {
+    background-color: #000000;
+    color: white;
+    padding: 7px 20px;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    letter-spacing: 1.3px;
   }
 </style>

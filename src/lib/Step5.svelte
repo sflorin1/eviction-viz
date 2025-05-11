@@ -29,56 +29,133 @@
   });
 </script>
 
-<div class="image-wrapper" style="width: {width}px; height: {height}px; {style}">
-  {#if imageLoaded}
-    <div class="scaled-container" 
-         style="width: {containerWidth}px; height: {containerHeight}px; 
-                transform: translate(-50%, -50%) scale({containerWidth/imgWidth});
-                left: 50%; top: 50%;">
-      <img src="Screenshot 2025-04-28 at 12.22.22 PM.png" alt="Step 5" style="transform: translateX({-450}px);"
-      />
+<body>
+  <div class="content-container">
+    <div class="text-left">
+      <div class="text-left-inner">
+      <div class="header-section">
+        <div class="number">#5</div>
+        <div> <span class="title-highlight">TRIAL & JUDGEMENT</span></div>
+      </div>
+      
+      <div class="text-section">
+        <div class="body-text">
+          <p>
+            If the court rules that the landlord can evict you, you will have 
+            <span class="highlight">10 days to appeal their decision.</span>
+          </p>
+          <p>
+            While data from 2020-2022 indicate that 17% of eviction filings resulted in executed evictions,
+            it’s not possible to know what the outcomes of many eviction filings were as these are not well documented in the data. 
+            <span class="highlight">48% of eviction filing records in Boston don’t show whether the tenant was actually evicted.</span>
+          </p>
+        </div>
+      </div>
+      </div>
     </div>
-  {:else}
-    <div class="loading-container">
-      <img 
-        bind:this={imgElement}
-        class="preload-image" 
-        src="Screenshot 2025-04-28 at 12.22.22 PM.png" 
-        alt="Step 5" 
-      />
+
+    <div class="chart-right">
+      <div class="chart">
+        <p>Image? Or Persist the Tenant Attorneys Pie Chart?</p>
+      </div>
     </div>
-  {/if}
-</div>
+  </div>
+</body>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
-  
-  .image-wrapper {
-    position: relative;
+
+  .content-container {
+    width: 90%;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    column-gap: 1rem;
+    max-height: calc(100vh - 320px);
     overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding-top: 15px;
+    gap: 3rem;
   }
-  
-  .scaled-container {
-    position: absolute;
-    pointer-events: all;
-    transform-origin: center;
-  }
-  
-  .scaled-container img {
+
+  .text-left {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 2;
+    grid-column: 1;
     width: 100%;
     height: 100%;
-    object-fit: contain;
   }
-  
-  .loading-container {
-    display: none;
+
+  .chart-right {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
   }
-  
-  .preload-image {
-    visibility: hidden;
-    position: absolute;
+
+  .chart {
+    align-self: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .header-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    font-weight: bold;
+    margin-right: 15px;
+    line-height: 1;
+    color: #14110F;
+    width: 1fr;
+  }
+
+  .body-text {
+    color: #14110F;
+    font-size: clamp(12px, 3.5vw, 15px);
+    font-family: 'Geist Mono', monospace;
+    font-weight: 400;
+    word-wrap: break-word;
+    line-height: 1.6;
+    margin-top: 3.5rem;
+  }
+
+  .footnote {
+    color: #14110F;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    word-wrap: break-word;
+    line-height: 1.7;
+  }
+
+  a {
+    color: #3E3E3D;
+  }
+
+  .highlight {
+    background-color: #06D6A0;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+
+  .title-highlight {
+    background-color: #000000;
+    color: white;
+    padding: 7px 20px;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    letter-spacing: 1.3px;
   }
 </style>

@@ -18,104 +18,126 @@
         imageLoaded = true;
       };
     }
-    
-    // Handle Datawrapper iframe height adjustments
-    window.addEventListener("message", (event) => {
-      if (event.data["datawrapper-height"]) {
-        const chartIframe = document.getElementById("datawrapper-chart-qJk9R");
-        if (chartIframe && chartIframe.contentWindow === event.source) {
-          for (let chartId in event.data["datawrapper-height"]) {
-            const newHeight = event.data["datawrapper-height"][chartId] + "px";
-            chartIframe.style.height = newHeight;
-          }
-        }
-      }
-    });
   });
 </script>
 
-<div class="container" style="width: {width}px; height: {height}px; {style}">
-  <div class="content-wrapper">
-    <div class="image-side">
-      {#if imageLoaded}
-        <img src="Step2.png" alt="Step 2" class="main-image" />
-      {:else}
-        <div class="loading-placeholder">
-          <img 
-            bind:this={imgElement}
-            class="preload-image" 
-            src="Step2.png" 
-            alt="Step 2" 
-          />
-          Loading...
+<body>
+  <div class="content-container">
+    <div class="text-left">
+      <div class="text-left-inner">
+      <div class="header-section">
+        <div class="number">#2</div>
+        <div> <span class="title-highlight">FILLING IN HOUSING COURT</span></div>
+      </div>
+      
+      <div class="text-section">
+        <div class="body-text">
+          <p>
+            It’s no wonder that <span class="highlight">"Non-Payment"</span> is the most common cause 
+            cited in filings. A 2024 analysis found that rapidly rising rents mean that the average Boston 
+            renter spends <span class="highlight">47% of their income on housing costs,</span> yet wages in 
+            Boston have not increased at the same rate.
+          </p>
+          <p>
+            It’s important to keep in mind that even when an eviction filing claims a tenant is being asked 
+            to leave for non-payment or a lease violation, <span class="highlight"> a landlord doesn’t need to prove their claim until 
+            the case is heard in court.</span>
+          </p>
         </div>
-      {/if}
+      </div>
+      </div>
     </div>
-    
-    <div class="chart-side">
-      <iframe 
-        title="Reasons For Eviction Filings" 
-        aria-label="Stacked Columns" 
-        id="datawrapper-chart-qJk9R" 
-        src="https://datawrapper.dwcdn.net/qJk9R/2/" 
-        scrolling="no" 
-        frameborder="0" 
-        class="chart-iframe">
-      </iframe>
+
+    <div class="chart-right">
+      <div class="chart">
+        <p>Chart of Eviction Filings by Case Type</p>
+      </div>
     </div>
   </div>
-</div>
+</body>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
-  
-  .container {
-    position: relative;
+
+  .content-container {
+    width: 90%;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    column-gap: 1rem;
+    max-height: calc(100vh - 320px);
     overflow: hidden;
+    padding-top: 15px;
+    gap: 3rem;
   }
-  
-  .content-wrapper {
-    display: flex;
+
+  .text-left {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 2;
+    grid-column: 1;
     width: 100%;
     height: 100%;
   }
-  
-  .image-side, .chart-side {
-    flex: 1;
-    display: flex;
-    justify-content: center;
+
+  .chart-right {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-column: 2;
+    grid-row: 1 / span 2;
     align-items: center;
-    overflow: hidden;
-  }
-  
-  .main-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-  
-  .chart-iframe {
-    width: 100%;
-    height: 100%;
-    min-height: 592px;
-    border: none;
-  }
-  
-  .loading-placeholder {
-    display: flex;
     justify-content: center;
-    align-items: center;
     width: 100%;
     height: 100%;
+  }
+
+  .chart {
+    align-self: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .header-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .number {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
+    font-size: 52px;
+    font-weight: bold;
+    margin-right: 15px;
+    line-height: 1;
+    color: #14110F;
+    width: 1fr;
   }
-  
-  .preload-image {
-    visibility: hidden;
-    position: absolute;
-    width: 1px;
-    height: 1px;
+
+  .body-text {
+    color: #14110F;
+    font-size: clamp(12px, 3.5vw, 15px);
+    font-family: 'Geist Mono', monospace;
+    font-weight: 400;
+    word-wrap: break-word;
+    line-height: 1.6;
+    margin-top: 3.5rem;
+  }
+
+  .highlight {
+    background-color: #06D6A0;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+
+  .title-highlight {
+    background-color: #000000;
+    color: white;
+    padding: 7px 20px;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    letter-spacing: 1.3px;
   }
 </style>
-

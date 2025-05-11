@@ -35,92 +35,139 @@
   });
 </script>
 
-<div class="container" style="width: {width}px; height: {height}px; {style}">
-  <div class="content-wrapper">
-    <div class="image-side">
-      {#if imageLoaded}
-        <img src="Step4.png" alt="Step 4" class="main-image" />
-      {:else}
-        <div class="loading-placeholder">
-          <img 
-            bind:this={imgElement}
-            class="preload-image" 
-            src="Step4.png" 
-            alt="Step 4" 
-          />
-          Loading...
+<body>
+  <div class="content-container">
+    <div class="text-left">
+      <div class="text-left-inner">
+      <div class="header-section">
+        <div class="number">#4</div>
+        <div> <span class="title-highlight">APPEARING IN COURT</span></div>
+      </div>
+      
+      <div class="text-section">
+        <div class="body-text">
+          <p>
+          <span class="highlight">Without an attorney, it's much harder to win your case</span> and avoid eviction — 
+          but it’s still crucial to show up for your court date. Otherwise, your landlord may be allowed to evict you automatically.
+          </p>
+          <p>
+          Evictions often happen for reasons that have little to do with the tenant’s fault. This is why 
+          <span class="highlight">groups in Boston work hard to offer free legal support</span> for people facing evictions.
+          </p>
+          <p class="footnote">
+            *Check out the City of Boston’s 
+            <a href="https://www.boston.gov/departments/housing/office-housing-stability/help-tenants-facing-eviction">Office of Housing Stability legal aid program</a>, 
+            Harvard Law School’s <a href="https://legalservicescenter.org/get-legal-help/housing-law-unit/">Housing Law Clinic</a>, 
+            <a href="https://www.masslegalhelp.org/housing-apartments-shelter/eviction">Mass Legal Help</a> and 
+            <a href="https://www.gbls.org/MADE">Greater Boston Legal Services</a> also provide resources for tenants to navigate the process.
+          </p>
         </div>
-      {/if}
+      </div>
+      </div>
     </div>
-    
-    <div class="chart-side">
-      <div class="chart-container" style="transform: scale({chartScale}); transform-origin: center center;">
-        <iframe 
-          title="Landlord Legal Representation" 
-          aria-label="Donut Chart" 
-          id="datawrapper-chart-1E9iq" 
-          src="https://datawrapper.dwcdn.net/1E9iq/5/" 
-          scrolling="no" 
-          frameborder="0" 
-          style="width: 100%; border: none;" 
-          height="709">
-        </iframe>
+
+    <div class="chart-right">
+      <div class="chart">
+        <p>Pie Chart: Tenant Attorneys</p>
       </div>
     </div>
   </div>
-</div>
+</body>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
-  
-  .container {
-    position: relative;
+
+  .content-container {
+    width: 90%;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    column-gap: 1rem;
+    max-height: calc(100vh - 320px);
     overflow: hidden;
+    padding-top: 15px;
+    gap: 3rem;
   }
-  
-  .content-wrapper {
-    display: flex;
+
+  .text-left {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-row: span 2;
+    grid-column: 1;
     width: 100%;
     height: 100%;
   }
-  
-  .image-side, .chart-side {
-    flex: 1;
-    display: flex;
-    justify-content: center;
+
+  .chart-right {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-column: 2;
+    grid-row: 1 / span 2;
     align-items: center;
-    overflow: hidden;
-  }
-  
-  .chart-container {
+    justify-content: center;
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
-  
-  .main-image {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-  }
-  
-  .loading-placeholder {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+
+  .chart {
+    align-self: center;
     width: 100%;
     height: 100%;
+  }
+
+  .header-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .number {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
+    font-size: 52px;
+    font-weight: bold;
+    margin-right: 15px;
+    line-height: 1;
+    color: #14110F;
+    width: 1fr;
   }
-  
-  .preload-image {
-    visibility: hidden;
-    position: absolute;
-    width: 1px;
-    height: 1px;
+
+  .body-text {
+    color: #14110F;
+    font-size: clamp(12px, 3.5vw, 15px);
+    font-family: 'Geist Mono', monospace;
+    font-weight: 400;
+    word-wrap: break-word;
+    line-height: 1.6;
+    margin-top: 3.5rem;
+  }
+
+  .footnote {
+    color: #14110F;
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    word-wrap: break-word;
+    line-height: 1.7;
+  }
+
+  a {
+    color: #3E3E3D;
+  }
+
+  .highlight {
+    background-color: #06D6A0;
+    padding: 0 4px;
+    border-radius: 3px;
+  }
+
+  .title-highlight {
+    background-color: #000000;
+    color: white;
+    padding: 7px 20px;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40px;
+    letter-spacing: 1.3px;
   }
 </style>
-

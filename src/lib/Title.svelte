@@ -16,24 +16,35 @@
     }
   </script>
   
-  <main style="transform: scale({scaleX}, {scaleY}); transform-origin: top left; {style}">
-    <div class="desktop">
-      <div class="boston-serial-evictors">
-        <span class="title-text">BOSTON'S RENTAL POWER DYNAMICS</span>
+  <div class="title-container">
+    <main style="transform: scale({scaleX}, {scaleY}); transform-origin: top left; {style}">
+      <div class="desktop">
+        <div class="boston-serial-evictors">
+          <span class="title-text">BOSTON'S RENTAL POWER DYNAMICS</span>
+          <br>
+          <br>
+          <span class="team">Team: Displaced by Design</span>
+          <br>
+          <span class="team">Sam Florin, Sheyla Chevarria, Jazzlynn Derrick, and Alejandra Pardini</span>
+        </div>
       </div>
-    </div>
-  </main>
+    </main>
+  </div>
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Coda+Caption:wght@800&display=swap');
-    
+
     main {
+      display: flex;
+      max-width: 90%;
       position: relative;
       width: 1600px; /* Base width */
       height: 800px; /* Base height */
       padding: 0;
       overflow: hidden;
       pointer-events: all;
+      text-align: center;
+      top: -10%;
     }
     
     .title-text {
@@ -44,10 +55,19 @@
       font-weight: 800;
       word-wrap: break-word;
     }
+
+    .team {
+      color: #14110F;
+      font-size: 14px;
+      font-family: 'Geist Mono', monospace;
+      font-weight: 400;
+      word-wrap: break-word;
+      line-height: 1.6;
+    }
     
     .boston-serial-evictors {
       left: 176px;
-      top: 450px;
+      top: 350px;
       position: absolute;
     }
     

@@ -7,7 +7,8 @@
     import Step4 from "../../lib/Step4.svelte";
     import Step5 from "../../lib/Step5.svelte";
     import Step6 from "../../lib/Step6.svelte";
-    
+    import Step7 from "../../lib/Step7.svelte";
+
     // Directly test if the components work
     let testMainTitle = true;
     let testStep1 = false;
@@ -22,8 +23,8 @@
       },
       {
         source: Step1,
-        width: 1300,
-        height: 650,
+        width: 1400,
+        height: 700,
         style: "transform: translateY(-50px);" // Move Step1 frame 150px higher
       },
 
@@ -60,7 +61,13 @@
         width: 1400,
         height: 700,
         style: "transform: translateY(-70px);" // Move Step1 frame 150px higher
-      }
+      },
+      {
+        source: Step7,
+        width: 1400,
+        height: 700,
+        style: "transform: translateY(-70px);" // Move Step1 frame 150px higher
+      },
     ];
    </script>
    
