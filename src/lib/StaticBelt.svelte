@@ -4,6 +4,7 @@
     import { writable } from 'svelte/store';
     import { fade } from 'svelte/transition';
     import MapSlide from './MapSlide.svelte';
+
     
     // Accept frames as a prop
     export let frames = [];
@@ -14,6 +15,7 @@
     // Paths for SVGs and images in a static folder
     const lineSvgPath = 'hugeline.svg';
     const boxSvgPath = 'box0.svg';
+
     const noticeSvgPath = 'notice.svg';
     const evictionNoticeTitlePath = 'evictionnoticetitle.png';
     
@@ -64,6 +66,7 @@
     const preZoomScrollHeight = frameCount * frameSegmentSize; // Total pre-zoom scroll height
     const zoomScrollHeight = 1500; // Zoom phase scroll height (per your requirement)
     const totalScrollHeight = preZoomScrollHeight + zoomScrollHeight + BOX_Y_SCROLL + MAP_Y_SCROLL; // Total scrollable height
+
     
     // Calculate frame transition points - completely recalculated
     const frameTransitions = frames.map((_, index) => {
@@ -144,6 +147,7 @@
     function getSlideIndex(scrollPos) {
         return frameTransitions.map(x => x.startFadeIn).filter(x => x < scrollPos).length;
     }
+
     
     // New helper function to calculate frame opacity based on revised transition points
     function calculateFrameOpacity(frameIndex, scrollPos) {
@@ -323,6 +327,7 @@
 
     const BOX_Y_SCROLL = 4000;
     const MAP_Y_SCROLL = 3000;
+
 </script>
 
 <main>
@@ -367,8 +372,7 @@
       <div class="text-notice-item" style="width: {noticeRow.size};">
         <img src={noticeSvgPath} alt="Notice SVG" />
       </div>
-    </div>
-  
+    </div>  
     <!-- Phase 2: Show all rows when zoomed out in second phase -->
     {#if showAllRows && currentScroll >= zoomStartPosition && currentScroll < (zoomStartPosition + BOX_Y_SCROLL)}
 
@@ -415,7 +419,7 @@
         </div>
       {/each}
     </div>
-
+    
     <!-- Put 20 boxes on screen, wrap them, spawn 1000px to left-->
     {#each Array(20) as _, i}
       <div class="box-item-new1" style="transform: translateX({((x + (i * 200)) % 4000) - 1000}px); --gap: {gap}px">
@@ -467,7 +471,6 @@
       {/if}
     </p>
   </div>
-
   <!-- Debug information -->
   {#if debug}
     <div class="debug-info">
@@ -777,7 +780,6 @@
       max-width: 80%;
     }
   }
-
   .map-container {
     height: 100vh;
     width: 100vw;
@@ -787,5 +789,13 @@
 
   .map-container-inner {
     margin: 0;
+  }
+  .map-link-container a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
   }
 </style>

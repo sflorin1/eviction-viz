@@ -152,7 +152,20 @@
             document.head.appendChild(link);
         });
     }
-    
+    let groupedTotalEvictionsByAddress;
+    let rScale;
+    $: {groupedTotalEvictionsByAddress = d3.rollups(
+        evictions,
+        v => v.length,
+        d => d.add_p
+    ).reduce((acc, [key, count]) => {
+        acc[key] = count;
+        return acc;
+    }, {});
+    rScale = d3.scaleSqrt()
+        .domain(d3.extent(Object.values(groupedTotalEvictionsByAddress)))
+        .range([4, 12]);
+    }
     let cutoff = 30;
     
     $: {
@@ -190,9 +203,6 @@
         return acc;
     }, {});
     
-    $: rScale = d3.scaleSqrt()
-        .domain(d3.extent(Object.values(groupedEvictionsByAddress)))
-        .range([4, 12]);
     
     $: selectedEvictor = selectedEvictorIndex > -1 ? pieData[selectedEvictorIndex].label : null;
     
@@ -211,7 +221,7 @@
         return acc;
     }, {});
 
-    $: rScale = d3.scaleSqrt().domain(d3.extent(Object.values(groupedEvictionsByAddress))).range([4,12]);
+    //$: rScale = d3.scaleSqrt().domain(d3.extent(Object.values(groupedEvictionsByAddress))).range([4,12]);
     //$: rScale = d3.scaleSqrt()
     //	    .domain([0, d3.max(filteredStations, d => d.totalTraffic) || 0])
     //	    .range(radiusRange);
@@ -261,90 +271,93 @@
 </script>
 
 <h1>Serial Evictors in Boston</h1>
-<h3>Executed evictions in Boston from 2020-2023: {evictions.length}</h3>
+<h3>Eviction Notice filed in Boston from 2020-2022: {evictions.length}</h3>
 
-<div id="map" on:click|stopPropagation>
-    <svg>
-    {#key mapViewChanged}
-    {#each filteredEvictions as eviction}
-        <circle 
-            cx={getCoords(eviction).cx}
-            cy={getCoords(eviction).cy}
-            class={eviction?.add_p === selectedEviction?.add_p ? "selected" : ""}
-            on:mouseenter={() => selectedEviction = selectedEviction?.add_p !== eviction?.add_p ? eviction : null}
-            on:mouseleave={() => selectedEviction = null}
-            on:click|stopPropagation
-            r={rScale(groupedEvictionsByAddress[eviction.add_p])}
-            fill= #3943B7 />
-    {/each}
-    {/key}
-    </svg>
+<div class="dashboard-container">
+    <div id="map-container">
+        <div id="map" on:click|stopPropagation>
+            <svg>
+            {#key mapViewChanged}
+            {#each filteredEvictions as eviction}
+                <circle 
+                    cx={getCoords(eviction).cx}
+                    cy={getCoords(eviction).cy}
+                    class={eviction?.add_p === selectedEviction?.add_p ? "selected" : ""}
+                    on:mouseenter={() => selectedEviction = selectedEviction?.add_p !== eviction?.add_p ? eviction : null}
+                    on:mouseleave={() => selectedEviction = null}
+                    on:click|stopPropagation
+                    r={rScale(groupedEvictionsByAddress[eviction.add_p])}
+                    fill="#3943B7" />
+            {/each}
+            {/key}
+            </svg>
 
-    <div id="legend">
-        <h4>Evictions Legend</h4>
-
-
-        <div class="size-scale">
-            <h5>Circle Size = # of Evictions</h5>
-            <div class="svg-wrapper-1-outer">
-                <div class="svg-wrapper-1-inner">
-                    <svg width="100%" height="60">
-                        <circle cx="20" cy="30" r="4" fill="#3943B7" stroke="white"/>
-                        <circle cx="60" cy="30" r="8" fill="#3943B7" stroke="white"/>
-                        <circle cx="100" cy="30" r="12" fill="#3943B7" stroke="white"/>
-                        <text x="20" y="55" text-anchor="middle" font-size="10">Few</text>
-                        <text x="60" y="55" text-anchor="middle" font-size="10">Some</text>
-                        <text x="100" y="55" text-anchor="middle" font-size="10">Many</text>
-                    </svg>
+            <div id="legend">
+                <h4>Evictions Legend</h4>
+                <div class="size-scale">
+                    <h5>Circle Size = # of Evictions</h5>
+                    <div class="svg-wrapper-1-outer">
+                        <div class="svg-wrapper-1-inner">
+                            <svg width="100%" height="60">
+                                <circle cx="20" cy="30" r="4" fill="#3943B7" stroke="white"/>
+                                <circle cx="60" cy="30" r="8" fill="#3943B7" stroke="white"/>
+                                <circle cx="100" cy="30" r="12" fill="#3943B7" stroke="white"/>
+                                <text x="20" y="55" text-anchor="middle" font-size="10">Few</text>
+                                <text x="60" y="55" text-anchor="middle" font-size="10">Some</text>
+                                <text x="100" y="55" text-anchor="middle" font-size="10">Many</text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="color-items">
+                    <h5>Ownership Difference</h5>
+                    <div class="color-item">
+                        <div class="color-box" style="background: #EA553E;"></div>
+                        <div>More owner-occupied</div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-box" style="background: #f2917e;"></div>
+                        <div>Similar rates</div>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-box" style="background: #f5c5b8;"></div>
+                        <div>More corporate-owned</div>
+                    </div>
                 </div>
             </div>
-            
         </div>
-        
-        <div class="color-items">
-            <h5>Ownership Difference</h5>
-            <div class="color-item">
-                <div class="color-box" style="background: #EA553E;"></div>
-                <div>More owner-occupied</div>
-            </div>
-            <div class="color-item">
-                <div class="color-box" style="background: #f2917e;"></div>
-                <div>Similar rates</div>
-            </div>
-            <div class="color-item">
-                <div class="color-box" style="background: #f5c5b8;"></div>
-                <div>More corporate-owned</div>
-            </div>
-        </div>
+
+        {#if selectedEviction}
+        <dl class="info tooltip">
+            <dt>Date</dt>
+            <dd>{selectedEviction.file_date}</dd>
+            <dt>Address</dt>
+            <dd>{selectedEviction.add_p}</dd>
+            <dt>Evictor</dt>
+            <dd>{selectedEviction.name_plaintiff}</dd>
+            <dt>Number of Evictions Filings</dt>
+            <dd>{groupedEvictionsByAddress[selectedEviction.add_p]}</dd>
+        </dl>
+        {/if}
     </div>
-</div>
 
-{#if selectedEviction}
-<dl class="info tooltip">
-    <dt>Date</dt>
-    <dd>{selectedEviction.file_date}</dd>
-    <dt>Address</dt>
-    <dd>{selectedEviction.add_p}</dd>
-    <dt>Evictor</dt>
-    <dd>{selectedEviction.name_plaintiff}</dd>
-    <dt>Number of Evictions</dt>
-    <dd>{groupedEvictionsByAddress[selectedEviction.add_p]}</dd>
-</dl>
-{/if}
-
-<div class="chart-container">
-    <h2>Top Evictors by Number of Evictions</h2>
-    <div id="waffle_chart">
-        <WaffleChart 
-            data={pieData} 
-            bind:selectedIndex={selectedEvictorIndex}
-            on:select={handleWaffleSelection}
-            rows={10}
-            columns={20}
-            cellSize={24}
-            cellPadding={3}
-            cellBorderRadius={0}
-        />
+    <div class="chart-container">
+        <div class="chart-section">
+            <h2>Top Evictors by Number of Eviction Filings</h2>
+            <div id="waffle_chart">
+                <WaffleChart 
+                    data={pieData} 
+                    bind:selectedIndex={selectedEvictorIndex}
+                    on:select={handleWaffleSelection}
+                    rows={8}
+                    columns={10}
+                    cellSize={18}
+                    cellPadding={3}
+                    cellBorderRadius={0}
+                />
+            </div>
+        </div>
     </div>
 </div>
 
@@ -369,6 +382,22 @@ p, div, span, dl, dt, dd {
     font-family: 'Inconsolata', monospace;
 }
 
+/* Side-by-side layout container */
+.dashboard-container {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    width: 100%;
+    height: calc(100vh - 150px);
+    min-height: 600px;
+}
+
+#map-container {
+    flex: 7;
+    width: 70%;
+    position: relative;
+}
+
 svg {
     position: absolute;
     z-index: 1;
@@ -378,11 +407,9 @@ svg {
 }
 
 #map {
-    flex: 1;
     width: 100%;
-    height: 70vh;
+    height: 100%;
     position: relative;
-    margin-bottom: 20px;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -442,27 +469,37 @@ dd {
 }
 
 .chart-container {
-    margin-top: 30px;
-    padding: 0 20px 40px;
+    flex: 3;
+    width: 30%;
+    padding: 20px;
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+.chart-section {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .chart-container h2 {
     text-align: center;
     margin-bottom: 25px;
-    padding-top: 20px;
     color: #333;
     font-size: 2rem;
 }
 
 #waffle_chart {
+    flex: 1;
     width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
     display: flex;
     justify-content: center;
+    align-items: center;
+    overflow: auto;
 }
 
 .tract-legend {
@@ -508,7 +545,16 @@ h1 {
 }
 
 /* Make the page more responsive */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
+    .dashboard-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    #map-container, .chart-container {
+        width: 100%;
+    }
+    
     #map {
         height: 50vh;
     }
@@ -531,14 +577,21 @@ h1 {
     #waffle_chart :global(.legend-wrapper) {
         width: 100%;
     }
+    
+    /* Move legend to bottom right on smaller screens */
+    #legend {
+        bottom: 20px;
+        left: auto;
+        right: 20px;
+    }
 }
 
 #legend {
-    display:grid;
+    display: grid;
     grid-template-rows: auto auto auto;
     position: absolute;
     bottom: 20px;
-    right: 20px;
+    left: 20px;
     background: white;
     padding: 10px;
     border-radius: 5px;
@@ -546,15 +599,8 @@ h1 {
     z-index: 2;
     max-width: 200px;
     font-size: 12px;
-    /* flex-direction: column; */
     gap: 10px;
 }
-
-/* .legend-section {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-} */
 
 .legend-item {
     display: flex;
