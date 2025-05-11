@@ -185,12 +185,13 @@
 
     // New helper function to calculate frame opacity based on revised transition points
     function calculateFrameOpacityMap(scrollPos) {
+        const MAP_FADE_TRANSITION = 200;
         const transition = zoomStartPosition + BOX_Y_SCROLL;
-        const fullyVisible = transition + frameFadeTransition;
+        const fullyVisible = transition + MAP_FADE_TRANSITION;
         
         // Fade in
         if (scrollPos >= transition && scrollPos < fullyVisible) {
-            return (scrollPos - transition) / frameFadeTransition;
+            return (scrollPos - transition) / MAP_FADE_TRANSITION;
         }
         // Fully visible
         else if (scrollPos >= fullyVisible) {
@@ -321,7 +322,7 @@
     });
 
     const BOX_Y_SCROLL = 4000;
-    const MAP_Y_SCROLL = 2000;
+    const MAP_Y_SCROLL = 3000;
 </script>
 
 <main>
@@ -382,7 +383,9 @@
   {#if showAllRows && currentScroll >= (zoomStartPosition + BOX_Y_SCROLL) && currentScroll < (zoomStartPosition + BOX_Y_SCROLL + MAP_Y_SCROLL)}
     <div>
       <div class="map-container" style="opacity: {calculateFrameOpacityMap(currentScroll)};">
-        <MapSlide/>
+        <div class="map-container-inner">
+          <MapSlide/>
+        </div>
       </div>
     </div>
   {/if}
@@ -430,6 +433,7 @@
           class="frame-container" 
           style="
             {frame.style || ''}
+            z-index: {50+(calculateFrameOpacity(index, currentScroll) > 0 ? 10 : 0)};
             opacity: {calculateFrameOpacity(index, currentScroll)};
           "
         >
@@ -779,5 +783,9 @@
     width: 100vw;
     z-index: 200;
     position: relative;
+  }
+
+  .map-container-inner {
+    margin: 0;
   }
 </style>

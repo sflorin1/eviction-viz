@@ -386,7 +386,7 @@ p, div, span, dl, dt, dd {
     flex-direction: row;
     gap: 20px;
     width: 100%;
-    height: calc(100vh - 150px);
+    height: calc(100vh - 250px);
     min-height: 600px;
 }
 
