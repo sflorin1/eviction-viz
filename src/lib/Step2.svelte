@@ -67,7 +67,7 @@
   
   // Calculate the percentage of non-payment evictions
   $: nonPaymentPercent = isDataLoaded && evictionTotals.length > 0 ? 
-    Math.round((evictionTotals.find(t => t.type === "Non-Payment")?.total || 0) / 
+    Math.round((evictionTotals.find(t => t.type === "Non-payment of Rent")?.total || 0) / 
     d3.sum(evictionTotals, d => d.total) * 100) : 0;
   
   // Calculate year-to-year growth for contextual statistics
