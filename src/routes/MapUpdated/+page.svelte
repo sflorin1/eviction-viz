@@ -7,8 +7,8 @@
     on:select={handleWaffleSelection}
     rows={8}
     columns={10}
-    cellSize={14} // Reduced from 18 to fit better
-    cellPadding={2} // Reduced from 3 to maximize space
+    cellSize={14} 
+    cellPadding={2} 
     cellBorderRadius={0}
 />
 
