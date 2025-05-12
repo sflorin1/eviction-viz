@@ -218,7 +218,7 @@
 <div class="waffle-container" bind:this={containerElement}>
   <!-- Total eviction notices -->
   <div class="total-evictions">
-    <h3>Total Eviction Notices: {totalItems}</h3>
+    <h3 style="font-size:20px; margin:-10px;">Total Eviction Notices: {totalItems}</h3>
   </div>
   
   <div class="waffle-chart-wrapper">
@@ -299,7 +299,7 @@
     flex-direction: column;
     width: 100%;
     margin: 0 auto;
-    gap: 20px;
+    gap: 10px;
     align-items: center;
     height: 100%;
   }
