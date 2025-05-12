@@ -1,26 +1,34 @@
 <script>
   import { createEventDispatcher } from 'svelte';
   import * as d3 from 'd3';
+  import { onMount } from 'svelte';
 
   export let data = [];
   export let selectedIndex = -1;
-  export let rows = 15; // Increased from 10 to 15
-  export let columns = 40; // Increased from 30 to 40
+  export let rows = 15; 
+  export let columns = 40;
   export let cellSize = 20;
   export let cellPadding = 2;
-  export let cellBorderRadius = 0; // Square corners
+  export let cellBorderRadius = 0;
 
+  // Responsive sizing
+  export let responsive = true; // New parameter to enable responsive sizing
+  let containerWidth;
+  let containerHeight;
+  let containerElement;
+  
   const dispatch = createEventDispatcher();
 
   let totalItems = 0;
   let processedData = [];
-  let width = columns * cellSize;
-  let height = rows * cellSize;
+  let adjustedCellSize = cellSize;
+  let width;
+  let height;
 
   // Categorize data into groups
   let categorizedData = {
-    high: [], // More than 100 evictions
-    medium: [], // More than 50 evictions
+    high: [], // More than 100 eviction filings
+    medium: [], // More than 50 evictions filings
     grey: [], // More than 30 evictions but less than 50 (to be shown in grey)
     other: [] // Less than 30 evictions or "Other" category
   };
@@ -29,18 +37,47 @@
   let topEvictorsPercentage = 0;
 
   // Create color scales for each category - intense colors for highest values
-  // Changed from red to bright blue
   const blueScale = d3.scaleLinear()
     .domain([1, 0])
-    .range(["#0047AB", "#99CCFF"]) // Bright blue to light blue
+    .range(["#0047AB", "#99CCFF"]) 
     .interpolate(d3.interpolateHcl);
 
-  // Kept orange but made it brighter
   const orangeScale = d3.scaleLinear()
     .domain([1, 0])
-    .range(["#FF8C00", "#FFD700"]) // Bright orange to gold
+    .range(["#FF8C00", "#FFD700"]) 
     .interpolate(d3.interpolateHcl);
 
+  // Get color based on item category and value
+  function getColor(item, index) {
+    if (item.isOther) {
+      return "#FFFFFF";
+    } else if (item.value > 100) {
+      const highItems = categorizedData.high;
+      const sortedHighItems = [...highItems].sort((a, b) => b.value - a.value);
+      const itemPosition = sortedHighItems.findIndex(d => d.label === item.label);
+      const normalizedPosition = 1 - (itemPosition / Math.max(1, highItems.length - 1));
+      return blueScale(normalizedPosition);
+    } else if (item.value > 50) {
+      const mediumItems = categorizedData.medium;
+      const sortedMediumItems = [...mediumItems].sort((a, b) => b.value - a.value);
+      const itemPosition = sortedMediumItems.findIndex(d => d.label === item.label);
+      const normalizedPosition = 1 - (itemPosition / Math.max(1, mediumItems.length - 1));
+      return orangeScale(normalizedPosition);
+    } else if (item.value > 30) {
+      return "#FFFFFF";
+    } else {
+      return "#FFFFFF";
+    }
+  }
+
+  // Handle legend item click
+  function handleLegendClick(index, event) {
+    event.stopPropagation();
+    selectedIndex = selectedIndex === index ? -1 : index;
+    dispatch('select', { index: selectedIndex });
+  }
+
+  // Process data when it changes
   $: {
     totalItems = d3.sum(data, d => d.value);
     
@@ -52,11 +89,9 @@
       other: data.filter(d => d.value <= 30 || d.isOther)
     };
     
-    // Calculate the percentage of evictions from top 11 evictors (high & medium categories)
+    // Calculate the percentage of evictions from top evictors
     const topEvictorsTotal = d3.sum([...categorizedData.high, ...categorizedData.medium], d => d.value);
     topEvictorsPercentage = Math.round((topEvictorsTotal / totalItems) * 100);
-    
-    width = columns * cellSize;
     
     // Calculate how many cells each item needs
     const totalCells = rows * columns;
@@ -69,105 +104,143 @@
       };
     });
   }
-
-  function getColor(item, index) {
-    // First check if this is the "Other" category
-    if (item.isOther) {
-      // White for "Other"
-      return "#FFFFFF";
-    } else if (item.value > 100) {
-      // Blue scale for high values - most intense for highest value
-      const highItems = categorizedData.high;
-      // Sort items by value - highest value gets position 0 (most intense color)
-      const sortedHighItems = [...highItems].sort((a, b) => b.value - a.value);
-      // Find position of this item in sorted array
-      const itemPosition = sortedHighItems.findIndex(d => d.label === item.label);
-      // Normalize position to 0-1 range, reversed so highest value gets 0 (most intense)
-      const normalizedPosition = 1 - (itemPosition / Math.max(1, highItems.length - 1));
-      return blueScale(normalizedPosition);
-    } else if (item.value > 50) {
-      // Orange scale for medium values - most intense for highest value
-      const mediumItems = categorizedData.medium;
-      // Sort items by value - highest value gets position 0 (most intense color)
-      const sortedMediumItems = [...mediumItems].sort((a, b) => b.value - a.value);
-      // Find position of this item in sorted array
-      const itemPosition = sortedMediumItems.findIndex(d => d.label === item.label);
-      // Normalize position to 0-1 range, reversed so highest value gets 0 (most intense)
-      const normalizedPosition = 1 - (itemPosition / Math.max(1, mediumItems.length - 1));
-      return orangeScale(normalizedPosition);
-    } else if (item.value > 30) {
-      // Grey for items between 30 and 50
-      return "#FFFFFF";  // Light grey instead of white for better distinction
-    } else {
-      // Light grey for low values
-      return "#FFFFFF";
+  
+  // Calculate cells array reactively
+  $: cells = generateCells(processedData, rows, columns);
+  
+  // Function to generate cells - extracted for better readability
+  function generateCells(processedData, rows, columns) {
+    let cells = [];
+    let dataItems = [...processedData];
+    let totalCellsNeeded = dataItems.reduce((sum, item) => sum + item.cellCount, 0);
+    let cellCount = 0;
+    
+    // Handle case where we need more or fewer cells than grid size
+    const totalGridCells = rows * columns;
+    if (totalCellsNeeded > totalGridCells) {
+      // Scale down cell counts proportionally if we have too many
+      const scaleFactor = totalGridCells / totalCellsNeeded;
+      dataItems = dataItems.map(item => ({
+        ...item,
+        cellCount: Math.max(1, Math.floor(item.cellCount * scaleFactor))
+      }));
+      totalCellsNeeded = dataItems.reduce((sum, item) => sum + item.cellCount, 0);
     }
-  }
-
-  function handleLegendClick(index, event) {
-    // Stop event from bubbling up to document
-    event.stopPropagation();
     
-    selectedIndex = selectedIndex === index ? -1 : index;
-    dispatch('select', { index: selectedIndex });
-  }
-
-  // Generate grid cells
-  $: cells = [];
-  $: {
-    cells = [];
-    let cellIndex = 0;
-    let dataIndex = 0;
+    // If we still don't have enough cells to fill the grid, adjust the largest item
+    if (totalCellsNeeded < totalGridCells) {
+      const largestItem = dataItems.reduce(
+        (max, item) => (item.cellCount > max.cellCount ? item : max),
+        { cellCount: 0 }
+      );
+      const indexOfLargest = dataItems.findIndex(item => item === largestItem);
+      if (indexOfLargest >= 0) {
+        dataItems[indexOfLargest].cellCount += (totalGridCells - totalCellsNeeded);
+      }
+    }
     
+    // Generate the cells from left to right, top to bottom
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < columns; j++) {
-        if (cellIndex < totalItems) {
-          // Find which data item this cell belongs to
-          while (dataIndex < processedData.length && 
-                processedData[dataIndex].cellCount <= 0) {
-            dataIndex++;
+        if (cellCount < totalGridCells) {
+          // Find data item this cell belongs to
+          let itemIndex = 0;
+          while (itemIndex < dataItems.length && dataItems[itemIndex].cellCount <= 0) {
+            itemIndex++;
           }
           
-          if (dataIndex < processedData.length) {
+          if (itemIndex < dataItems.length) {
             cells.push({
-              x: j * cellSize,
-              y: i * cellSize,
-              dataItem: processedData[dataIndex],
-              index: dataIndex
+              x: j * adjustedCellSize,
+              y: i * adjustedCellSize,
+              dataItem: dataItems[itemIndex],
+              index: dataItems[itemIndex].index
             });
             
-            processedData[dataIndex].cellCount--;
-            cellIndex++;
+            dataItems[itemIndex].cellCount--;
+            cellCount++;
           }
         }
       }
     }
+    
+    return cells;
+  }
+  
+  // Calculate width and height based on container size if responsive is true
+  onMount(() => {
+    function updateSize() {
+      if (responsive && containerElement) {
+        containerWidth = containerElement.clientWidth;
+        
+        // Calculate cell size based on available width
+        const maxCellSize = Math.floor((containerWidth - 30) / columns); // 30px for padding
+        adjustedCellSize = Math.min(cellSize, maxCellSize);
+        
+        width = columns * adjustedCellSize;
+        height = rows * adjustedCellSize;
+      } else {
+        adjustedCellSize = cellSize;
+        width = columns * cellSize;
+        height = rows * cellSize;
+      }
+    }
+    
+    updateSize();
+    
+    // Add resize listener for responsiveness
+    const resizeObserver = new ResizeObserver(updateSize);
+    if (containerElement) {
+      resizeObserver.observe(containerElement);
+    }
+    
+    return () => {
+      if (containerElement) {
+        resizeObserver.unobserve(containerElement);
+      }
+    };
+  });
+  
+  // Update size when container element changes
+  $: if (containerElement) {
+    containerWidth = containerElement.clientWidth;
+    if (responsive) {
+      const maxCellSize = Math.floor((containerWidth - 30) / columns); // 30px for padding
+      adjustedCellSize = Math.min(cellSize, maxCellSize);
+    } else {
+      adjustedCellSize = cellSize;
+    }
+    width = columns * adjustedCellSize;
+    height = rows * adjustedCellSize;
   }
 </script>
 
-<div class="waffle-container">
+<div class="waffle-container" bind:this={containerElement}>
   <!-- Total eviction notices -->
   <div class="total-evictions">
     <h3>Total Eviction Notices: {totalItems}</h3>
   </div>
   
-  <div class="waffle-chart" on:click|stopPropagation>
-    <svg width={width} height={height}>
-      {#each cells as cell}
-        <rect
-          width={cellSize - cellPadding}
-          height={cellSize - cellPadding}
-          x={cell.x + cellPadding / 2}
-          y={cell.y + cellPadding / 2}
-          rx={cellBorderRadius}
-          ry={cellBorderRadius}
-          fill={getColor(cell.dataItem, cell.index)}
-          stroke={cell.dataItem?.isOther ? "#dddddd" : "none"}
-          stroke-width={cell.dataItem?.isOther ? 1 : 0}
-          opacity={selectedIndex === -1 || selectedIndex === cell.index ? 1 : 0.3}
-        />
-      {/each}
-    </svg>
+  <div class="waffle-chart-wrapper">
+    <div class="waffle-chart" on:click|stopPropagation>
+      <svg width={width} height={height}>
+        {#each cells as cell}
+          <rect
+            width={adjustedCellSize - cellPadding}
+            height={adjustedCellSize - cellPadding}
+            x={cell.x + cellPadding / 2}
+            y={cell.y + cellPadding / 2}
+            rx={cellBorderRadius}
+            ry={cellBorderRadius}
+            fill={getColor(cell.dataItem, cell.index)}
+            stroke={cell.dataItem?.isOther ? "#dddddd" : "none"}
+            stroke-width={cell.dataItem?.isOther ? 1 : 0}
+            opacity={selectedIndex === -1 || selectedIndex === cell.index ? 1 : 0.3}
+            class={selectedIndex === cell.index ? 'selected' : ''}
+          />
+        {/each}
+      </svg>
+    </div>
   </div>
   
   <div class="legend-wrapper">
@@ -184,7 +257,7 @@
             >
               <div class="legend-item-container">
                 <div class="legend-color" style="background-color: {getColor(item)};"></div>
-                <div class="legend-label">{item.label}</div>
+                <div class="legend-label" title={item.label}>{item.label}</div>
               </div>
               <div class="legend-value">{item.value} evictions</div>
             </div>
@@ -204,7 +277,7 @@
             >
               <div class="legend-item-container">
                 <div class="legend-color" style="background-color: {getColor(item)};"></div>
-                <div class="legend-label">{item.label}</div>
+                <div class="legend-label" title={item.label}>{item.label}</div>
               </div>
               <div class="legend-value">{item.value} evictions</div>
             </div>
@@ -216,7 +289,7 @@
   
   <!-- Percentage information -->
   <div class="evictors-percentage">
-    <p>The 11 evictors shown are responsible for <strong>{topEvictorsPercentage}%</strong> of eviction notices</p>
+    <p>The {categorizedData.high.length + categorizedData.medium.length} evictors shown are responsible for <strong>{topEvictorsPercentage}%</strong> of eviction notices</p>
   </div>
 </div>
 
@@ -228,10 +301,20 @@
     margin: 0 auto;
     gap: 20px;
     align-items: center;
+    height: 100%;
+  }
+  
+  .waffle-chart-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    overflow: auto;
+    padding: 5px;
+    box-sizing: border-box;
   }
   
   .waffle-chart {
-    width: 100%;
+    width: fit-content;
     display: flex;
     justify-content: center;
     background-color: rgba(255, 255, 255, 0.3);
@@ -240,13 +323,29 @@
     box-sizing: border-box;
   }
   
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+  
+  rect {
+    transition: opacity 0.2s ease;
+  }
+  
+  rect.selected {
+    stroke: #000;
+    stroke-width: 2px;
+    opacity: 1;
+  }
+  
   .legend-wrapper {
     width: 100%;
     overflow-y: auto;
-    max-height: 450px;
+    max-height: 300px; /* Reduced from 450px */
     background-color: rgba(255, 255, 255, 0.3);
     border-radius: 8px;
     padding: 15px;
+    box-sizing: border-box;
   }
   
   .legend-columns {
@@ -276,6 +375,8 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    overflow-y: auto;
+    max-height: 200px; /* Added max-height to enable scrolling */
   }
   
   .legend-item {
@@ -305,6 +406,7 @@
     background-color: rgba(255, 255, 255, 0.9);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     border: 1px solid #999;
+    transform: translateY(-2px);
   }
   
   .legend-color {
@@ -374,29 +476,58 @@
   }
   
   .evictors-percentage strong {
-    color: #0047AB; /* Changed from #990000 to blue to match the new color scheme */
+    color: #0047AB;
     font-size: 1.2rem;
   }
   
-  /* Adjusted responsive design for different screen sizes */
+  /* Improved responsive design for different screen sizes */
   @media (max-width: 1200px) {
-    .legend-columns {
-      flex-wrap: wrap;
-    }
-    
-    .legend-column {
-      flex-basis: calc(50% - 10px);
-      min-width: 180px;
-    }
-  }
-  
-  @media (max-width: 768px) {
     .legend-columns {
       flex-direction: column;
     }
     
     .legend-column {
-      flex-basis: 100%;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    
+    .legend-wrapper {
+      max-height: 400px; /* Allow more height on smaller screens */
+    }
+    
+    .legend-items {
+      max-height: 150px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .waffle-chart {
+      padding: 10px;
+    }
+    
+    .legend-column h3 {
+      font-size: 0.9rem;
+    }
+    
+    .legend-item {
+      padding: 6px 8px;
+    }
+    
+    .legend-label {
+      font-size: 0.8em;
+    }
+    
+    .legend-value {
+      font-size: 0.75em;
+    }
+    
+    .total-evictions h3,
+    .evictors-percentage p {
+      font-size: 0.9rem;
+    }
+    
+    .evictors-percentage strong {
+      font-size: 1rem;
     }
   }
 </style>

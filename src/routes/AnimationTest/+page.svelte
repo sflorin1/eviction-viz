@@ -7,7 +7,7 @@
     import Step4 from "../../lib/Step4.svelte";
     import Step5 from "../../lib/Step5.svelte";
     import Step6 from "../../lib/Step6.svelte";
-    import Step7 from "../../lib/Step7.svelte";
+    import Step7 from "../../lib/HiddenImpact.svelte";
 
     // Directly test if the components work
     let testMainTitle = true;
