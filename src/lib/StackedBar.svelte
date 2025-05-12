@@ -3,7 +3,7 @@
 	import { onMount, tick, afterUpdate } from 'svelte';
 
 	export let data = [];
-	export let width = 600;
+	export let width = 400;
 	export let height = 500;
 	export let margin = { top: 50, right: 30, bottom: 50, left: 50 };
 
@@ -80,7 +80,7 @@
 			const year = date.getFullYear();
 			
 			// Always return the year as second line
-			return [month, year.toString()];
+			return [month];
 		} catch (e) {
 			return [monthStr.charAt(0), ''];
 		}
@@ -143,6 +143,30 @@
 		return total > 0 ? Math.round((value / total) * 100) : 0;
 	}
 </script>
+
+<!-- Enhanced interactive legend -->
+<div class="legend-container">
+	<div class="legend-title">EVICTION FILINGS BY TYPES</div>
+	<ul class="legend" on:click|stopPropagation>
+		{#each legendData as d, i}
+			<li
+				style="--color: {color(d.label)}"
+				on:click|stopPropagation={() => selectedIndex = selectedIndex === i ? -1 : i}
+				on:mouseenter={() => setHoverIndex(i)}
+				on:mouseleave={clearHoverIndex}
+				class:selected={selectedIndex === i}
+				class:hovered={hoverIndex === i}
+			>
+				<span class="swatch"></span>
+				<div class="legend-text">
+					<span class="legend-label">{d.label}</span>
+					<span class="legend-value">{d.value}</span>
+					<span class="legend-percent">({getSegmentPercentage(d.value, d3.sum(legendData, d => d.value))}%)</span>
+				</div>
+			</li>
+		{/each}
+	</ul>
+</div>
 
 <div class="chart-container" on:click={() => selectedIndex = -1}>
 	<svg bind:this={svg} {width} {height} on:click|stopPropagation>
@@ -228,7 +252,7 @@
 			font-family="'Bebas Neue', sans-serif"
 			fill="#14110F"
 		>
-			EVICTION NOTICES BY TYPE
+		MONTHLY EVICTION FILINGS BY TYPE (2022—2023)
 		</text>
 
 		<!-- Axes -->
@@ -238,8 +262,8 @@
 		<!-- Axis labels -->
 		<text
 			x={width / 2}
-			y={height - 5}
-			text-anchor="middle"
+			y={height - 10}
+			text-anchor="top"
 			font-size="14"
 			font-family="'Geist Mono', monospace"
 		>
@@ -258,29 +282,7 @@
 		</text>
 	</svg>
 
-	<!-- Enhanced interactive legend -->
-	<div class="legend-container">
-		<div class="legend-title">EVICTION FILINGS BY TYPES</div>
-		<ul class="legend" on:click|stopPropagation>
-			{#each legendData as d, i}
-				<li
-					style="--color: {color(d.label)}"
-					on:click|stopPropagation={() => selectedIndex = selectedIndex === i ? -1 : i}
-					on:mouseenter={() => setHoverIndex(i)}
-					on:mouseleave={clearHoverIndex}
-					class:selected={selectedIndex === i}
-					class:hovered={hoverIndex === i}
-				>
-					<span class="swatch"></span>
-					<div class="legend-text">
-						<span class="legend-label">{d.label}</span>
-						<span class="legend-value">{d.value}</span>
-						<span class="legend-percent">({getSegmentPercentage(d.value, d3.sum(legendData, d => d.value))}%)</span>
-					</div>
-				</li>
-			{/each}
-		</ul>
-	</div>
+	
 </div>
 
 <style>
@@ -321,10 +323,9 @@
 	}
 
 	.legend-container {
-		margin-top: 1rem;
+		margin-top: 15px;
 		border: none;
 		border-radius: 0;
-		padding: 0.5rem 0;
 		background-color: transparent;
 	}
 
@@ -340,11 +341,12 @@
 		display: flex;
 		flex-direction: row;
 		flex-wrap: nowrap;
-		gap: 1rem;
+		gap: 0.5rem;
 		list-style: none;
 		padding: 0;
 		margin: 0;
 		overflow-x: auto;
+		margin-bottom: 25px;
 	}
 
 	.legend li {

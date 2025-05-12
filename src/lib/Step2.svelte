@@ -134,7 +134,6 @@
           </div>
         {:else}
           <div class="chart-container" in:fade={{ duration: 800 }}>
-            <div class="chart-header">MONTHLY EVICTION FILINGS BY TYPE</div>
             <div class="chart">
               <StackedBar data={processedData} height={450} width={550} margin={{ top: 30, right: 30, bottom: 60, left: 50 }} bind:selectedIndex={selectedIndex}/>
             </div>
@@ -202,7 +201,6 @@
   }
   
   .chart-right {
-    display: grid;
     grid-template-rows: subgrid;
     grid-column: 2;
     grid-row: 1 / span 2;

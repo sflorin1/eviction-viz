@@ -179,7 +179,6 @@
   }
   
   .chart-right {
-    display: grid;
     grid-template-rows: subgrid;
     grid-column: 2;
     grid-row: 1 / span 2;
