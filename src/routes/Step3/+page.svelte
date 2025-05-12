@@ -1,5 +1,5 @@
 <script>
-    export let width = 1300; // default value if none passed
+    export let width = 1000; // default value if none passed
     export let height = 1000;
     export let style = ""; // optional style parameter
     export let chartScale = 0.8; // Control chart size (0.7 = 70% of original size)

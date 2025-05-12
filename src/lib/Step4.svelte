@@ -5,12 +5,15 @@
   export let chartScale = 0.8; // Control chart size (0.7 = 70% of original size)
   
   import { onMount } from 'svelte';
-  
+  import Pie from '$lib/Pie.svelte';
+  import * as d3 from "d3";
+  import { base } from '$app/paths';
+  let pieData = [];
   let imageLoaded = false;
   let imgElement;
   let imgWidth, imgHeight;
   
-  onMount(() => {
+  onMount(async () => {
     if (imgElement) {
       imgElement.onload = () => {
         // Get natural dimensions of the image
@@ -18,6 +21,7 @@
         imgHeight = imgElement.naturalHeight;
         imageLoaded = true;
       };
+      
     }
     
     // Handle Datawrapper iframe height adjustments
@@ -32,6 +36,10 @@
         }
       }
     });
+    pieData = await d3.csv(`${base}/adjusted_tenant_attorneys.csv`, d => ({
+            label: d.name,
+            value: +d.count
+        }));
   });
 </script>
 
@@ -68,7 +76,7 @@
 
     <div class="chart-right">
       <div class="chart">
-        <p>Pie Chart: Tenant Attorneys</p>
+        <Pie data = {pieData}/>
       </div>
     </div>
   </div>
@@ -98,7 +106,6 @@
     width: 100%;
     height: 100%;
   }
-
   .chart-right {
     display: grid;
     grid-template-rows: subgrid;
@@ -106,13 +113,13 @@
     grid-row: 1 / span 2;
     align-items: center;
     justify-content: center;
-    width: 100%;
+    width: 80%;
     height: 100%;
   }
 
   .chart {
     align-self: center;
-    width: 100%;
+    width: 170%;
     height: 100%;
   }
 

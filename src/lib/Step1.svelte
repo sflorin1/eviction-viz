@@ -4,12 +4,15 @@
   export let style = ""; // optional style parameter
   
   import { onMount } from 'svelte';
-  
+  import * as d3 from "d3";
+  import StackedBar from '$lib/StackedBar.svelte';
+  import { base } from '$app/paths';
+  let processedData = [];
   let imageLoaded = false;
   let imgElement;
   let imgWidth, imgHeight;
   
-  onMount(() => {
+  onMount(async () => {
     if (imgElement) {
       imgElement.onload = () => {
         // Get natural dimensions of the image
@@ -18,7 +21,16 @@
         imageLoaded = true;
       };
     }
-  });
+    const raw = await d3.csv(`${base}/evictions_by_month.csv`, d3.autoType);
+		processedData = raw.map(d => {
+			const { month, ...rest } = d;
+			return {
+				month,
+				...rest
+			};
+		});
+  }
+  );
 </script>
 
   <body>
@@ -52,7 +64,7 @@
 
       <div class="chart-right">
         <div class="chart">
-          <p>Chart of Eviction Filings by Case Type</p>
+          <StackedBar data = {processedData}/>
         </div>
       </div>
   </body>

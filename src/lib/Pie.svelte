@@ -47,8 +47,8 @@
 </div>
 <style>
     svg {
-        max-width: 20em;
-        margin-block: 2em;
+        max-width: 15em;
+        margin-block: 1em;
         overflow: visible;
     }
     svg:has(path:hover) path:not(:hover) {

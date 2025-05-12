@@ -4,12 +4,16 @@
   export let style = ""; // optional style parameter
   
   import { onMount } from 'svelte';
-  
+  import Pie from '$lib/Pie.svelte';
+  import * as d3 from "d3";
+  import { base } from '$app/paths';
+  let pieData = [];
+    
   let imageLoaded = false;
   let imgElement;
   let imgWidth, imgHeight;
   
-  onMount(() => {
+  onMount(async () => {
     if (imgElement) {
       imgElement.onload = () => {
         // Get natural dimensions of the image
@@ -17,6 +21,7 @@
         imgHeight = imgElement.naturalHeight;
         imageLoaded = true;
       };
+      
     }
     
     // Handle Datawrapper iframe height adjustments
@@ -31,6 +36,10 @@
         }
       }
     });
+    pieData = await d3.csv(`${base}/alternate_landlord_attorneys.csv`, d => ({
+            label: d.name,
+            value: +d.count
+      }));
   });
 </script>
 
@@ -65,7 +74,7 @@
 
     <div class="chart-right">
       <div class="chart">
-        <p>Pie Chart: Landlord Attorneys</p>
+        <Pie data = {pieData}/>
       </div>
     </div>
   </div>
@@ -109,7 +118,7 @@
 
   .chart {
     align-self: center;
-    width: 100%;
+    width: 150%;
     height: 100%;
   }
 
