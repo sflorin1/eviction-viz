@@ -263,7 +263,7 @@
 
 <div class="map-frame">
     <h1>Serial Evictors in Boston</h1>
-    <h3>Eviction Notice filed in Boston from 2020-2022: {evictions.length}</h3>
+    <p>Eviction Notices filed in Boston from 2020-2022: {evictions.length}</p>
 
     <div class="dashboard-container">
         <div id="map-container">
@@ -336,7 +336,7 @@
 
         <div class="chart-container">
             <div class="chart-section">
-                <h2>Top Evictors by Number of Eviction Filings</h2>
+                <h2 style="font-size:20px; letter-spacing: 1px;">Top Evictors by Number of Eviction Filings</h2>
                 <div id="waffle_chart">
                     <WaffleChart 
                         data={pieData} 
@@ -366,9 +366,19 @@
     background-color: #F9EAE1;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h3, h4, h5, h6 {
     font-family: 'Bebas Neue', sans-serif;
     letter-spacing: 1px;
+}
+
+h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+}
+
+h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 10px;
 }
 
 p, div, span, dl, dt, dd {
@@ -569,6 +579,7 @@ h1 {
     
     #waffle_chart :global(.waffle-chart) {
         margin-bottom: 20px;
+        min-height: 250px;
         overflow-x: auto;
     }
     
