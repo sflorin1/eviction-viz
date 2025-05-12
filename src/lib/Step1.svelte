@@ -92,6 +92,7 @@
     grid-column: 1;
     width: 100%;
     height: 100%;
+    min-width: 0;
   }
 
   .chart-right {
@@ -99,6 +100,13 @@
     grid-template-rows: subgrid;
     grid-column: 2;
     grid-row: 1 / span 2;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .chart {
+    align-self: center;
     width: 100%;
     height: 100%;
   }

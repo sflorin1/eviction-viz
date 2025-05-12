@@ -3,7 +3,7 @@
 	import { onMount, tick, afterUpdate } from 'svelte';
 
 	export let data = [];
-	export let width = 800;
+	export let width = 600;
 	export let height = 500;
 	export let margin = { top: 20, right: 30, bottom: 30, left: 40 };
 

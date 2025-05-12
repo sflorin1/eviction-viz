@@ -4,6 +4,7 @@
     import { writable } from 'svelte/store';
     import { fade } from 'svelte/transition';
     import MapSlide from './MapSlide.svelte';
+    import Resources from './Resources.svelte';
 
     
     // Accept frames as a prop
@@ -393,15 +394,6 @@
       </div>
     </div>
   {/if}
-
-  <!-- FINAL SLIDE GOES HERE, this is a placeholder -->
-  {#if showAllRows && currentScroll >= (zoomStartPosition + BOX_Y_SCROLL + MAP_Y_SCROLL)}
-    <div>
-      <div class="last-container" style="opacity: {calculateFrameOpacityLast(currentScroll)};">
-        <div>PLACEHOLDER: I'm on the end of the scroll.</div>
-      </div>
-    </div>
-  {/if}
   
   <!-- Conveyor Belt implementation for hugelines -->
   <div 
@@ -471,6 +463,7 @@
       {/if}
     </p>
   </div>
+
   <!-- Debug information -->
   {#if debug}
     <div class="debug-info">
@@ -490,7 +483,14 @@
 </main>
 
 <!-- Make the page scrollable -->
-<div class="scroll-container" style="height: {totalScrollHeight}px;"></div>
+<div class="scroll-container" style="height: {totalScrollHeight}px;">
+    <!-- FINAL SLIDE GOES HERE, this is a placeholder -->
+    {#if showAllRows && currentScroll >= (zoomStartPosition + BOX_Y_SCROLL + MAP_Y_SCROLL)}
+      <div class="last-container" style="opacity: {calculateFrameOpacityLast(currentScroll)}; top: {totalScrollHeight-1000}px;">
+        <Resources/>
+      </div>
+    {/if}
+</div>
 
 <style>
   main {
@@ -579,6 +579,11 @@
     justify-content: center;
     pointer-events: all; /* Ensure links and interactions work */
     transition: opacity 0.2s ease; /* Faster transitions */
+  }
+
+  .last-container {
+    position: relative;
+    z-index: 210;
   }
   
   /* Debug info styles */

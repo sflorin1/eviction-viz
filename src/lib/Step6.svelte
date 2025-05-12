@@ -94,6 +94,7 @@
     grid-column: 1;
     width: 100%;
     height: 100%;
+    min-width: 0;
   }
 
   .chart-right {
@@ -105,6 +106,7 @@
     justify-content: center;
     width: 80%;
     height: 100%;
+    min-width: 0;
   }
 
   .chart {
